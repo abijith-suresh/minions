@@ -1,0 +1,21 @@
+{
+  "name": "@minions/opencode-v1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": "./src/server.ts",
+    "./tui": "./src/tui.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@minions/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "1.17.13"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=1.17.13 <2"
+  }
+}
