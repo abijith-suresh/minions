@@ -1,8 +1,8 @@
-import type { TuiPluginModule } from "@opencode-ai/plugin/tui"
+import type { TuiPluginModule } from "@opencode-ai/plugin/tui";
 
 const plugin = {
   id: "minions",
   tui: async () => {},
-} satisfies TuiPluginModule
+} satisfies TuiPluginModule;
 
-export default plugin
+export default plugin;

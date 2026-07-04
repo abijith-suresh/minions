@@ -1,35 +1,102 @@
 name: CI
 
 on:
+  pull_request:
   push:
     branches:
       - main
-  pull_request:
-
-permissions:
-  contents: read
+  workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  quality:
-    name: Quality
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 22
+          - 24
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v5
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          bun-version-file: package.json
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Setup npm
+        run: npm install --global npm@11.18.0
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm ci
 
-      - name: Run checks
-        run: bun run check
+      - name: Changeset policy
+        if: github.event_name == 'pull_request' && matrix.node-version == 22
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
+        run: |
+          npm run changeset:check -- \
+            --base "$BASE_SHA" \
+            --head "$HEAD_SHA" \
+            --head-ref "$HEAD_REF" \
+            --head-repo "$HEAD_REPO" \
+            --base-repo "$BASE_REPO"
+
+      - name: Check formatting
+        if: matrix.node-version == 22
+        run: npm run format:check
+
+      - name: Lint
+        if: matrix.node-version == 22
+        run: npm run lint
+
+      - name: Check commit messages
+        if: github.event_name == 'pull_request' && matrix.node-version == 22
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npx commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
+
+      - name: Test repository policy
+        if: matrix.node-version == 22
+        run: npm run test:policy
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Packed-package smoke test
+        run: npm run test:smoke
+
+  quality:
+    name: Quality
+    if: always()
+    needs:
+      - validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report validation result
+        env:
+          RESULT: ${{ needs.validate.result }}
+        run: test "$RESULT" = "success"
