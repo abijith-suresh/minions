@@ -77,8 +77,8 @@ try {
       "--input-type=module",
       "--eval",
       [
-        'import server, { createOpenCodeAgents } from "@minions/opencode/server"',
-        'import tui from "@minions/opencode/tui"',
+        'import server, { createOpenCodeAgents } from "@abijith-suresh/minions-opencode/server"',
+        'import tui from "@abijith-suresh/minions-opencode/tui"',
         'if (server.id !== "minions" || typeof server.server !== "function") process.exit(1)',
         'if (tui.id !== "minions" || typeof tui.tui !== "function") process.exit(1)',
         "const agents = createOpenCodeAgents()",

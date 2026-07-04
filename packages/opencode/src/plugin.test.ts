@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import server, { applyMinionsConfig, createMinionsHooks, createOpenCodeAgents } from "./server.ts";
 import tui from "./tui.ts";
 
-describe("@minions/opencode entry points", () => {
+describe("@abijith-suresh/minions-opencode entry points", () => {
   test("exports the server entry point", () => {
     expect(server.id).toBe("minions");
     expect(server.server).toBeTypeOf("function");

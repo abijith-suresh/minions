@@ -1,6 +1,6 @@
 import parse from "@changesets/parse";
 
-export const RELEASE_PACKAGE = "@minions/opencode";
+export const RELEASE_PACKAGE = "@abijith-suresh/minions-opencode";
 export const REQUIRED_RELEASE_TYPE = "patch";
 
 export function toPosixPath(path) {

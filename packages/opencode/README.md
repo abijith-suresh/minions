@@ -1,4 +1,4 @@
-# @minions/opencode
+# @abijith-suresh/minions-opencode
 
 OpenCode adapter for Minions. The current package targets OpenCode v1.
 
