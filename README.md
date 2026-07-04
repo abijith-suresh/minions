@@ -22,9 +22,11 @@ ready for installation or general use. APIs and behavior may change in every pul
 ## Repository layout
 
 ```text
+apps/
+  website/    Static project website
 packages/
-  core/          Host-neutral role definitions, prompts, and options
-  opencode-v1/   OpenCode v1 server and TUI adapters
+  core/       Host-neutral role definitions, prompts, and options
+  opencode/   OpenCode adapter, currently targeting OpenCode v1
 ```
 
 ## Development
@@ -32,6 +34,12 @@ packages/
 ```sh
 npm install
 npm run verify
+```
+
+Run the website locally with:
+
+```sh
+npm run dev --workspace minions-website
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch workflow.

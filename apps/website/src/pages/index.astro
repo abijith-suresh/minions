@@ -1,0 +1,216 @@
+---
+import SiteLayout from "../components/SiteLayout.astro";
+import "../styles/global.css";
+
+const sourceUrl = "https://github.com/abijith-suresh/minions";
+const contributingUrl = "https://github.com/abijith-suresh/minions/blob/main/CONTRIBUTING.md";
+---
+
+<SiteLayout
+  title="Minions — delegated work for OpenCode"
+  description="A pre-v1 OpenCode plugin that gives one primary agent a focused, non-delegating worker."
+>
+  <header class="site-header">
+    <a class="wordmark" href={import.meta.env.BASE_URL} aria-label="Minions home">
+      <span aria-hidden="true">m/</span>
+      minions
+    </a>
+    <nav aria-label="Primary">
+      <a href="#workflow">Workflow</a>
+      <a href="#status">Status</a>
+      <a href={sourceUrl}>Source ↗</a>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="kicker"><span>OpenCode plugin</span><span>pre-v1 / private</span></p>
+        <h1 id="hero-title">Delegate<br>the work.<br><em>Keep the judgment.</em></h1>
+        <p class="hero-summary">
+          Minions separates execution from coordination. A selectable primary agent directs one
+          hidden worker, verifies the result, and presents the final answer.
+        </p>
+        <div class="hero-actions">
+          <a class="primary-link" href={sourceUrl}
+            >View the source <span aria-hidden="true">↗</span></a
+          >
+          <span class="availability">No public install yet</span>
+        </div>
+      </div>
+
+      <section class="dispatch-board" aria-label="A diagram of the Minions delegation loop">
+        <div class="board-heading">
+          <span>dispatch / 001</span>
+          <span class="status-light"><i aria-hidden="true"></i> architecture locked</span>
+        </div>
+        <ol class="dispatch-flow">
+          <li class="dispatch-node primary-node">
+            <span class="node-index">01</span>
+            <div>
+              <strong>minions</strong>
+              <small>selectable primary</small>
+            </div>
+            <span class="node-action">directs</span>
+          </li>
+          <li class="dispatch-connector" aria-hidden="true">
+            <span>task brief</span><i></i>
+          </li>
+          <li class="dispatch-node worker-node">
+            <span class="node-index">02</span>
+            <div>
+              <strong>minions-worker</strong>
+              <small>hidden · cannot delegate</small>
+            </div>
+            <span class="node-action">executes</span>
+          </li>
+          <li class="dispatch-connector returning" aria-hidden="true">
+            <span>evidence + result</span><i></i>
+          </li>
+          <li class="dispatch-node output-node">
+            <span class="node-index">03</span>
+            <div>
+              <strong>verified result</strong>
+              <small>reviewed by the primary</small>
+            </div>
+            <span class="node-action">presents</span>
+          </li>
+        </ol>
+        <p class="board-footnote">
+          The host decides whether work runs in the foreground or background.
+        </p>
+      </section>
+    </section>
+
+    <section class="principle-strip" aria-label="Project principles">
+      <p>one primary</p>
+      <span aria-hidden="true">×</span>
+      <p>one worker</p>
+      <span aria-hidden="true">×</span>
+      <p>one clear boundary</p>
+    </section>
+
+    <section class="workflow section-shell" id="workflow" aria-labelledby="workflow-title">
+      <div class="section-intro">
+        <p class="section-number">01 / workflow</p>
+        <h2 id="workflow-title">A narrow delegation loop.</h2>
+        <p>
+          The primary stays responsible for understanding the request and the quality of the answer.
+          The worker gets a bounded task and the tools to complete it—never another worker.
+        </p>
+      </div>
+
+      <ol class="workflow-list">
+        <li>
+          <span class="step-number">01</span>
+          <div>
+            <h3>Frame</h3>
+            <p>The primary turns the request into a concrete brief for the worker.</p>
+          </div>
+          <span class="role-tag primary">primary</span>
+        </li>
+        <li>
+          <span class="step-number">02</span>
+          <div>
+            <h3>Execute</h3>
+            <p>The hidden worker investigates or implements without recursively delegating.</p>
+          </div>
+          <span class="role-tag worker">worker</span>
+        </li>
+        <li>
+          <span class="step-number">03</span>
+          <div>
+            <h3>Verify</h3>
+            <p>The primary inspects the evidence, checks the work, and owns the final response.</p>
+          </div>
+          <span class="role-tag primary">primary</span>
+        </li>
+      </ol>
+    </section>
+
+    <section class="boundaries section-shell" aria-labelledby="boundaries-title">
+      <div class="section-intro">
+        <p class="section-number">02 / boundaries</p>
+        <h2 id="boundaries-title">Small surface.<br>Explicit roles.</h2>
+      </div>
+
+      <div class="boundary-grid">
+        <article>
+          <span class="card-mark" aria-hidden="true">A</span>
+          <h3>Selectable, not imposed</h3>
+          <p>
+            <code>minions</code>{" "}is a primary agent you choose in the OpenCode TUI. It is not
+            the default.
+          </p>
+        </article>
+        <article>
+          <span class="card-mark" aria-hidden="true">B</span>
+          <h3>One private channel</h3>
+          <p>
+            The primary sees only <code>minions-worker</code>. Built-in subagents stay outside its
+            delegation surface.
+          </p>
+        </article>
+        <article>
+          <span class="card-mark" aria-hidden="true">C</span>
+          <h3>Host-native execution</h3>
+          <p>
+            Foreground and background behavior follows what OpenCode supports instead of adding
+            another scheduler.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section class="status-section section-shell" id="status" aria-labelledby="status-title">
+      <div class="section-intro">
+        <p class="section-number">03 / field status</p>
+        <h2 id="status-title">Under active construction.</h2>
+        <p>
+          Minions is private and pre-v1. The architecture is defined; the plugin implementation is
+          still being built. Contracts may change before the first public release.
+        </p>
+      </div>
+
+      <div class="status-ledger">
+        <div>
+          <span class="ledger-state defined">defined</span>
+          <p>Primary and worker role boundary</p>
+        </div>
+        <div>
+          <span class="ledger-state defined">defined</span>
+          <p>OpenCode v1 as the first host</p>
+        </div>
+        <div>
+          <span class="ledger-state planned">planned</span>
+          <p>Worker model selection in the TUI</p>
+        </div>
+        <div>
+          <span class="ledger-state withheld">withheld</span>
+          <p>Installation instructions until usable</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing section-shell" aria-labelledby="closing-title">
+      <p class="section-number">04 / participate</p>
+      <h2 id="closing-title">Follow the build,<br>not the hype.</h2>
+      <p>
+        The repository is open for inspection while the package remains private. Read the
+        implementation, review decisions, or contribute through the project guidelines.
+      </p>
+      <div class="closing-links">
+        <a class="closing-link" href={sourceUrl}>Source code <span aria-hidden="true">↗</span></a>
+        <a class="closing-link" href={contributingUrl}
+          >Contributing guide <span aria-hidden="true">↗</span></a
+        >
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Minions / OpenCode</span>
+    <span>MIT licensed</span>
+    <span>pre-v1</span>
+  </footer>
+</SiteLayout>

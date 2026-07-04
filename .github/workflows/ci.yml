@@ -77,6 +77,10 @@ jobs:
         if: matrix.node-version == 22
         run: npm run test:policy
 
+      - name: Check website
+        if: matrix.node-version == 22
+        run: npm run check --workspace minions-website
+
       - name: Typecheck
         run: npm run typecheck
 

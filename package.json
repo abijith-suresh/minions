@@ -8,6 +8,7 @@
   },
   "packageManager": "npm@11.18.0",
   "workspaces": [
+    "apps/*",
     "packages/*"
   ],
   "scripts": {
@@ -23,13 +24,13 @@
     "publish:release": "changeset publish",
     "test": "npm run test --workspaces --if-present",
     "test:policy": "node --test scripts/changeset-policy.test.mjs scripts/check-changeset.test.mjs",
-    "test:smoke": "npm run test:smoke --workspace @minions/opencode-v1",
+    "test:smoke": "npm run test:smoke --workspace @minions/opencode",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "verify": "npm run format:check && npm run lint && npm run test:policy && npm run typecheck && npm test && npm run build && npm run test:smoke",
+    "verify": "npm run format:check && npm run lint && npm run test:policy && npm run check --workspace minions-website && npm run typecheck && npm test && npm run build && npm run test:smoke",
     "version:packages": "changeset version && npm install --package-lock-only --ignore-scripts"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,mjs,cjs,json,jsonc}": [
+    "*.{ts,tsx,js,mjs,cjs,json,jsonc,astro,css}": [
       "biome check --write --no-errors-on-unmatched"
     ]
   },
@@ -46,6 +47,7 @@
     "vitest": "4.1.9"
   },
   "allowScripts": {
-    "msgpackr-extract": false
+    "msgpackr-extract": false,
+    "esbuild@0.28.1": true
   }
 }

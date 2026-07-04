@@ -1,0 +1,21 @@
+{
+  "name": "minions-website",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "typecheck": "astro sync && tsc --noEmit",
+    "verify": "npm run check && npm run typecheck"
+  },
+  "dependencies": {
+    "astro": "^7.0.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "typescript": "~5.8.3"
+  }
+}

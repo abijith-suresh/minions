@@ -1,6 +1,6 @@
 import parse from "@changesets/parse";
 
-export const RELEASE_PACKAGE = "@minions/opencode-v1";
+export const RELEASE_PACKAGE = "@minions/opencode";
 export const REQUIRED_RELEASE_TYPE = "patch";
 
 export function toPosixPath(path) {
@@ -13,16 +13,16 @@ export function isReleasablePath(path) {
   if (
     normalized === "packages/core/package.json" ||
     normalized === "packages/core/tsconfig.json" ||
-    normalized === "packages/opencode-v1/package.json" ||
-    normalized === "packages/opencode-v1/tsconfig.json"
+    normalized === "packages/opencode/package.json" ||
+    normalized === "packages/opencode/tsconfig.json"
   ) {
     return true;
   }
 
   if (
     normalized.startsWith("packages/core/src/") ||
-    normalized.startsWith("packages/opencode-v1/src/") ||
-    normalized.startsWith("packages/opencode-v1/scripts/")
+    normalized.startsWith("packages/opencode/src/") ||
+    normalized.startsWith("packages/opencode/scripts/")
   ) {
     return !normalized.match(/\.(test|spec)\.[cm]?[jt]sx?$/);
   }
@@ -87,8 +87,8 @@ function isGeneratedReleaseEntry(entry) {
 
   return (
     (status === "A" || status === "M") &&
-    (path === "packages/opencode-v1/CHANGELOG.md" ||
-      path === "packages/opencode-v1/package.json" ||
+    (path === "packages/opencode/CHANGELOG.md" ||
+      path === "packages/opencode/package.json" ||
       path === "package-lock.json")
   );
 }
