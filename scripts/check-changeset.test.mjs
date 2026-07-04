@@ -67,7 +67,7 @@ test("passes a source change with a patch changeset", () => {
     repository.write("packages/opencode/src/server.ts", "export {}\n");
     repository.write(
       ".changeset/fix.md",
-      '---\n"@minions/opencode": patch\n---\nFix delegation.\n',
+      '---\n"@abijith-suresh/minions-opencode": patch\n---\nFix delegation.\n',
     );
     repository.git("add", "-A");
     repository.git("commit", "--quiet", "-m", "change source");

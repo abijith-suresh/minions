@@ -22,7 +22,7 @@ npm run verify
 1. Create a branch from `main`.
 2. Keep changes focused on one vertical slice.
 3. For changes to shipped source or package behavior, run `npm run changeset` and select a
-   patch release for `@minions/opencode`.
+   patch release for `@abijith-suresh/minions-opencode`.
 4. Run `npm run verify`.
 5. Open a pull request.
 

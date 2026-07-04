@@ -9,15 +9,20 @@ The project currently targets OpenCode v1's terminal TUI. Its internal behavior 
 The repository is under active pre-v1 development. The OpenCode package is private and not
 ready for installation or general use. APIs and behavior may change in every pull request.
 
-## Initial scope
+## Current behavior
 
 - One selectable `minions` primary agent
 - One hidden `minions-worker` subagent
 - Prompt-driven delegation of substantive work
 - Main agent retains tools for coordination and verification
+- Main agent can delegate only to `minions-worker`
 - Worker cannot delegate to other subagents
-- Worker model selection through a `/minions` TUI dialog, defaulting to the primary model
+- Primary and worker models inherit the model selected for the conversation
 - OpenCode-native foreground or background task behavior
+
+Worker model selection through the TUI is planned as a separate slice. The
+current adapter intentionally leaves both agent models unset so OpenCode uses
+its native model inheritance.
 
 ## Repository layout
 
