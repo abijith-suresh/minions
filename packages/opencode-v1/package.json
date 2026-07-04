@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Delegation-first agent workflow plugin for OpenCode v1.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/abijith-suresh/minions.git",
@@ -32,6 +32,7 @@
   },
   "files": [
     "dist",
+    "LICENSE",
     "README.md"
   ],
   "engines": {

@@ -4,6 +4,7 @@ Minions is currently in its initial development phase.
 
 ## Prerequisites
 
+- mise
 - Node.js 22.22.2 or newer in the Node 22 line, or Node.js 24.15 or newer
 - npm 11.5 or newer
 - OpenCode 1.17.13 or newer within the v1 release line
@@ -11,6 +12,7 @@ Minions is currently in its initial development phase.
 ## Setup
 
 ```sh
+mise install
 npm install
 npm run verify
 ```

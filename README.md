@@ -6,9 +6,8 @@ The project currently targets OpenCode v1's terminal TUI. Its internal behavior 
 
 ## Status
 
-The repository is under active pre-v1 development. The OpenCode package is private,
-unlicensed, and not ready for installation or general use. APIs and behavior may change in
-every pull request.
+The repository is under active pre-v1 development. The OpenCode package is private and not
+ready for installation or general use. APIs and behavior may change in every pull request.
 
 ## Initial scope
 

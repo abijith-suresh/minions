@@ -39,6 +39,7 @@ try {
 
   const files = new Set(packed.files.map(({ path }) => path));
   for (const required of [
+    "LICENSE",
     "README.md",
     "package.json",
     "dist/server.js",
