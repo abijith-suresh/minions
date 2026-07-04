@@ -2,7 +2,7 @@
 
 Minions is an experimental OpenCode plugin that adds a selectable primary agent which delegates substantive work to one hidden worker agent.
 
-The project currently targets OpenCode v1's terminal TUI. Its internal behavior is kept separate from the OpenCode adapter so additional hosts can be evaluated later without coupling the core policy to one plugin API.
+The project currently targets OpenCode `>=1.4.0 <2` and its terminal TUI. Its internal behavior is kept separate from the OpenCode adapter so additional hosts can be evaluated later without coupling the core policy to one plugin API.
 
 ## Status
 
@@ -32,6 +32,8 @@ apps/
 packages/
   core/       Host-neutral role definitions, prompts, and options
   opencode/   OpenCode adapter, currently targeting OpenCode v1
+tooling/
+  changesets/ Pre-v1 release policy and its tests
 ```
 
 ## Development

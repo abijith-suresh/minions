@@ -7,7 +7,7 @@ import {
   isChangesetMarkdown,
   RELEASE_PACKAGE,
   toPosixPath,
-} from "./changeset-policy.mjs";
+} from "./policy.mjs";
 
 export function parseArgs(argv) {
   const args = {};

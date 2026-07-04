@@ -14,7 +14,7 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "changeset": "changeset",
-    "changeset:check": "node scripts/check-changeset.mjs",
+    "changeset:check": "node tooling/changesets/check.mjs",
     "clean": "npm run clean --workspaces --if-present",
     "format": "biome format --write .",
     "format:check": "biome format .",
@@ -23,7 +23,8 @@
     "prepare": "husky",
     "publish:release": "changeset publish",
     "test": "npm run test --workspaces --if-present",
-    "test:policy": "node --test scripts/changeset-policy.test.mjs scripts/check-changeset.test.mjs",
+    "test:host": "npm run test:host --workspace @abijith-suresh/minions-opencode",
+    "test:policy": "node --test tooling/changesets/policy.test.mjs tooling/changesets/check.test.mjs",
     "test:smoke": "npm run test:smoke --workspace @abijith-suresh/minions-opencode",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "verify": "npm run format:check && npm run lint && npm run test:policy && npm run check --workspace minions-website && npm run typecheck && npm test && npm run build && npm run test:smoke",

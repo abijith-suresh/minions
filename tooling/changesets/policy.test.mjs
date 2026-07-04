@@ -10,7 +10,7 @@ import {
   RELEASE_PACKAGE,
   releasablePathsFromEntries,
   toPosixPath,
-} from "./changeset-policy.mjs";
+} from "./policy.mjs";
 
 const entry = (status, path) => ({ status, from: path, to: path });
 const changeset = (type = "patch", packageName = RELEASE_PACKAGE) =>
@@ -19,10 +19,13 @@ const changeset = (type = "patch", packageName = RELEASE_PACKAGE) =>
 test("classifies shipped source and package behavior as releasable", () => {
   assert.equal(isReleasablePath("packages/core/src/index.ts"), true);
   assert.equal(isReleasablePath("packages/opencode/src/server.ts"), true);
-  assert.equal(isReleasablePath("packages/opencode/scripts/smoke.mjs"), true);
+  assert.equal(isReleasablePath("packages/opencode/scripts/bundle.mjs"), true);
   assert.equal(isReleasablePath("packages/opencode/package.json"), true);
   assert.equal(isReleasablePath("packages/core/src/index.test.ts"), false);
   assert.equal(isReleasablePath("packages/opencode/src/server.spec.ts"), false);
+  assert.equal(isReleasablePath("packages/opencode/test/packed-package.mjs"), false);
+  assert.equal(isReleasablePath("packages/opencode/test/opencode-host.mjs"), false);
+  assert.equal(isReleasablePath("packages/opencode/scripts/other.mjs"), false);
   assert.equal(isReleasablePath("packages/opencode/README.md"), false);
   assert.equal(isReleasablePath("package.json"), false);
   assert.equal(isReleasablePath(".github/workflows/ci.yml"), false);
@@ -69,6 +72,28 @@ test("accepts exactly one patch release for the releasable package", () => {
   assert.equal(result.changesetRequired, true);
 });
 
+test("accepts multiple individually valid patch changesets", () => {
+  assert.equal(
+    changesetSatisfies([
+      { path: ".changeset/one.md", content: changeset() },
+      { path: ".changeset/two.md", content: changeset() },
+    ]).ok,
+    true,
+  );
+});
+
+test("rejects an invalid changeset even when another changed changeset is valid", () => {
+  for (const invalid of [changeset("minor"), changeset("major"), "not frontmatter"]) {
+    assert.equal(
+      changesetSatisfies([
+        { path: ".changeset/valid.md", content: changeset() },
+        { path: ".changeset/invalid.md", content: invalid },
+      ]).ok,
+      false,
+    );
+  }
+});
+
 test("rejects wrong bump levels, packages, malformed files, and mixed releases", () => {
   for (const content of [
     changeset("minor"),
@@ -87,6 +112,8 @@ test("does not require changesets for docs, tests, website, or repository toolin
       entry("M", "README.md"),
       entry("M", "apps/website/src/pages/index.astro"),
       entry("M", "packages/core/src/index.test.ts"),
+      entry("M", "packages/opencode/test/packed-package.mjs"),
+      entry("M", "tooling/changesets/policy.mjs"),
       entry("M", "biome.json"),
     ],
   });

@@ -3,6 +3,20 @@ import parse from "@changesets/parse";
 export const RELEASE_PACKAGE = "@abijith-suresh/minions-opencode";
 export const REQUIRED_RELEASE_TYPE = "patch";
 
+const RELEASABLE_FILES = new Set([
+  "packages/core/package.json",
+  "packages/core/tsconfig.json",
+  "packages/opencode/package.json",
+  "packages/opencode/scripts/bundle.mjs",
+  "packages/opencode/tsconfig.json",
+]);
+
+const RELEASABLE_SOURCE_DIRECTORIES = ["packages/core/src/", "packages/opencode/src/"];
+
+function isTestSource(path) {
+  return /\.(test|spec)\.[cm]?[jt]sx?$/.test(path);
+}
+
 export function toPosixPath(path) {
   return path.split("\\").join("/");
 }
@@ -10,24 +24,12 @@ export function toPosixPath(path) {
 export function isReleasablePath(path) {
   const normalized = toPosixPath(path);
 
-  if (
-    normalized === "packages/core/package.json" ||
-    normalized === "packages/core/tsconfig.json" ||
-    normalized === "packages/opencode/package.json" ||
-    normalized === "packages/opencode/tsconfig.json"
-  ) {
-    return true;
-  }
+  if (RELEASABLE_FILES.has(normalized)) return true;
 
-  if (
-    normalized.startsWith("packages/core/src/") ||
-    normalized.startsWith("packages/opencode/src/") ||
-    normalized.startsWith("packages/opencode/scripts/")
-  ) {
-    return !normalized.match(/\.(test|spec)\.[cm]?[jt]sx?$/);
-  }
-
-  return false;
+  return (
+    RELEASABLE_SOURCE_DIRECTORIES.some((directory) => normalized.startsWith(directory)) &&
+    !isTestSource(normalized)
+  );
 }
 
 export function isChangesetMarkdown(path) {
@@ -113,7 +115,8 @@ function parseChangeset(content) {
 }
 
 export function changesetSatisfies(changesetFiles) {
-  if (changesetFiles.length === 0) {
+  const candidates = changesetFiles.filter(({ path }) => isChangesetMarkdown(path));
+  if (candidates.length === 0) {
     return {
       ok: false,
       reason: "no changeset was added or modified by this pull request",
@@ -122,9 +125,7 @@ export function changesetSatisfies(changesetFiles) {
 
   const failures = [];
 
-  for (const file of changesetFiles) {
-    if (!isChangesetMarkdown(file.path)) continue;
-
+  for (const file of candidates) {
     const parsed = parseChangeset(file.content);
     if (!parsed.ok) {
       failures.push(`${file.path}: ${parsed.reason}`);
@@ -137,7 +138,7 @@ export function changesetSatisfies(changesetFiles) {
       release.name === RELEASE_PACKAGE &&
       release.type === REQUIRED_RELEASE_TYPE
     ) {
-      return { ok: true };
+      continue;
     }
 
     const actual = parsed.releases.map(({ name, type }) => `${name}: ${type}`).join(", ");
@@ -146,9 +147,11 @@ export function changesetSatisfies(changesetFiles) {
     );
   }
 
+  if (failures.length === 0) return { ok: true };
+
   return {
     ok: false,
-    reason: `no valid patch changeset for ${RELEASE_PACKAGE}. ${failures.join("; ")}`,
+    reason: `every changed changeset must contain only a patch release for ${RELEASE_PACKAGE}. ${failures.join("; ")}`,
   };
 }
 
