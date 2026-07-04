@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const adapter = fileURLToPath(new URL("./check-changeset.mjs", import.meta.url));
+const adapter = fileURLToPath(new URL("./check.mjs", import.meta.url));
 
 function useRepository() {
   const root = mkdtempSync(join(tmpdir(), "minions-changeset-policy-"));
@@ -86,6 +86,22 @@ test("passes a documentation-only change", () => {
     repository.write("README.md", "updated\n");
     repository.git("add", "-A");
     repository.git("commit", "--quiet", "-m", "update docs");
+
+    const result = run(repository.root, "--base", "HEAD~1", "--head", "HEAD");
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /no releasable package paths changed/);
+  } finally {
+    repository.cleanup();
+  }
+});
+
+test("passes package test and repository-tooling changes", () => {
+  const repository = useRepository();
+  try {
+    repository.write("packages/opencode/test/packed-package.mjs", "export {}\n");
+    repository.write("tooling/changesets/policy.mjs", "export {}\n");
+    repository.git("add", "-A");
+    repository.git("commit", "--quiet", "-m", "update tests and tooling");
 
     const result = run(repository.root, "--base", "HEAD~1", "--head", "HEAD");
     assert.equal(result.status, 0, result.stderr);
