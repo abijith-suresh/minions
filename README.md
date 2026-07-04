@@ -6,7 +6,8 @@ The project currently targets OpenCode v1's terminal TUI. Its internal behavior 
 
 ## Status
 
-The repository is scaffolded for incremental development. It is not ready for installation or general use.
+The repository is under active pre-v1 development. The OpenCode package is private and not
+ready for installation or general use. APIs and behavior may change in every pull request.
 
 ## Initial scope
 
@@ -15,7 +16,7 @@ The repository is scaffolded for incremental development. It is not ready for in
 - Prompt-driven delegation of substantive work
 - Main agent retains tools for coordination and verification
 - Worker cannot delegate to other subagents
-- Main and worker model selection through a `/minions` TUI dialog
+- Worker model selection through a `/minions` TUI dialog, defaulting to the primary model
 - OpenCode-native foreground or background task behavior
 
 ## Repository layout
@@ -29,8 +30,8 @@ packages/
 ## Development
 
 ```sh
-bun install
-bun run check
+npm install
+npm run verify
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch workflow.

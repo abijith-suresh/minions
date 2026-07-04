@@ -1,8 +1,8 @@
-import type { PluginModule } from "@opencode-ai/plugin"
+import type { PluginModule } from "@opencode-ai/plugin";
 
 const plugin = {
   id: "minions",
   server: async () => ({}),
-} satisfies PluginModule
+} satisfies PluginModule;
 
-export default plugin
+export default plugin;

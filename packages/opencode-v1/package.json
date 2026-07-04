@@ -1,21 +1,54 @@
 {
   "name": "@minions/opencode-v1",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
+  "description": "Delegation-first agent workflow plugin for OpenCode v1.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abijith-suresh/minions.git",
+    "directory": "packages/opencode-v1"
+  },
+  "homepage": "https://github.com/abijith-suresh/minions#readme",
+  "bugs": {
+    "url": "https://github.com/abijith-suresh/minions/issues"
+  },
+  "keywords": [
+    "ai-agents",
+    "coding-agent",
+    "opencode",
+    "opencode-plugin"
+  ],
   "exports": {
-    "./server": "./src/server.ts",
-    "./tui": "./src/tui.ts"
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    },
+    "./tui": {
+      "types": "./dist/tui.d.ts",
+      "default": "./dist/tui.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": "^22.22.2 || >=24.15.0",
+    "opencode": ">=1.17.13 <2"
   },
   "scripts": {
-    "typecheck": "tsc --project tsconfig.json"
-  },
-  "dependencies": {
-    "@minions/core": "workspace:*"
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "clean": "node --eval \"fs.rmSync('dist', { force: true, recursive: true })\"",
+    "prepack": "npm run build",
+    "test": "vitest run",
+    "test:smoke": "node scripts/smoke.mjs",
+    "typecheck": "tsc -p tsconfig.typecheck.json",
+    "verify": "npm run typecheck && npm run test && npm run build && npm run test:smoke"
   },
   "devDependencies": {
     "@opencode-ai/plugin": "1.17.13"
-  },
-  "peerDependencies": {
-    "@opencode-ai/plugin": ">=1.17.13 <2"
   }
 }
