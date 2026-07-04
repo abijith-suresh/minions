@@ -18,12 +18,12 @@ const changeset = (type = "patch", packageName = RELEASE_PACKAGE) =>
 
 test("classifies shipped source and package behavior as releasable", () => {
   assert.equal(isReleasablePath("packages/core/src/index.ts"), true);
-  assert.equal(isReleasablePath("packages/opencode-v1/src/server.ts"), true);
-  assert.equal(isReleasablePath("packages/opencode-v1/scripts/smoke.mjs"), true);
-  assert.equal(isReleasablePath("packages/opencode-v1/package.json"), true);
+  assert.equal(isReleasablePath("packages/opencode/src/server.ts"), true);
+  assert.equal(isReleasablePath("packages/opencode/scripts/smoke.mjs"), true);
+  assert.equal(isReleasablePath("packages/opencode/package.json"), true);
   assert.equal(isReleasablePath("packages/core/src/index.test.ts"), false);
-  assert.equal(isReleasablePath("packages/opencode-v1/src/server.spec.ts"), false);
-  assert.equal(isReleasablePath("packages/opencode-v1/README.md"), false);
+  assert.equal(isReleasablePath("packages/opencode/src/server.spec.ts"), false);
+  assert.equal(isReleasablePath("packages/opencode/README.md"), false);
   assert.equal(isReleasablePath("package.json"), false);
   assert.equal(isReleasablePath(".github/workflows/ci.yml"), false);
 });
@@ -43,23 +43,23 @@ test("normalizes paths and considers both sides of a rename", () => {
       {
         status: "R100",
         from: "docs/server.ts",
-        to: "packages/opencode-v1/src/server.ts",
+        to: "packages/opencode/src/server.ts",
       },
     ]),
-    ["packages/opencode-v1/src/server.ts"],
+    ["packages/opencode/src/server.ts"],
   );
 });
 
 test("requires a changeset for releasable paths", () => {
   const result = classifyChangesetPolicy({
-    diffEntries: [entry("M", "packages/opencode-v1/src/server.ts")],
+    diffEntries: [entry("M", "packages/opencode/src/server.ts")],
   });
 
   assert.equal(result.ok, false);
   assert.equal(result.changesetRequired, true);
 });
 
-test("accepts exactly one patch release for the public package", () => {
+test("accepts exactly one patch release for the releasable package", () => {
   const result = classifyChangesetPolicy({
     diffEntries: [entry("M", "packages/core/src/index.ts"), entry("A", ".changeset/fix.md")],
     changesetFiles: [{ path: ".changeset/fix.md", content: changeset() }],
@@ -81,10 +81,11 @@ test("rejects wrong bump levels, packages, malformed files, and mixed releases",
   }
 });
 
-test("does not require changesets for docs, tests, or repository tooling", () => {
+test("does not require changesets for docs, tests, website, or repository tooling", () => {
   const result = classifyChangesetPolicy({
     diffEntries: [
       entry("M", "README.md"),
+      entry("M", "apps/website/src/pages/index.astro"),
       entry("M", "packages/core/src/index.test.ts"),
       entry("M", "biome.json"),
     ],
@@ -97,8 +98,8 @@ test("does not require changesets for docs, tests, or repository tooling", () =>
 test("release exemption is exact, same-repository, and generated-output only", () => {
   const generated = [
     entry("D", ".changeset/fix.md"),
-    entry("M", "packages/opencode-v1/package.json"),
-    entry("M", "packages/opencode-v1/CHANGELOG.md"),
+    entry("M", "packages/opencode/package.json"),
+    entry("M", "packages/opencode/CHANGELOG.md"),
     entry("M", "package-lock.json"),
   ];
 
@@ -112,7 +113,7 @@ test("release exemption is exact, same-repository, and generated-output only", (
   );
   assert.equal(
     isExemptReleasePr(
-      [...generated, entry("M", "packages/opencode-v1/src/server.ts")],
+      [...generated, entry("M", "packages/opencode/src/server.ts")],
       "changeset-release/main",
       "owner/minions",
       "owner/minions",

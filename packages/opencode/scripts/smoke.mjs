@@ -77,8 +77,8 @@ try {
       "--input-type=module",
       "--eval",
       [
-        'import server from "@minions/opencode-v1/server"',
-        'import tui from "@minions/opencode-v1/tui"',
+        'import server from "@minions/opencode/server"',
+        'import tui from "@minions/opencode/tui"',
         'if (server.id !== "minions" || typeof server.server !== "function") process.exit(1)',
         'if (tui.id !== "minions" || typeof tui.tui !== "function") process.exit(1)',
       ].join("\n"),

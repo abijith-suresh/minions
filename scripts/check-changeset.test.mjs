@@ -48,14 +48,14 @@ function run(root, ...args) {
 test("fails a source change without a changeset", () => {
   const repository = useRepository();
   try {
-    repository.write("packages/opencode-v1/src/server.ts", "export {}\n");
+    repository.write("packages/opencode/src/server.ts", "export {}\n");
     repository.git("add", "-A");
     repository.git("commit", "--quiet", "-m", "change source");
 
     const result = run(repository.root, "--base", "HEAD~1", "--head", "HEAD");
     assert.equal(result.status, 1);
     assert.match(result.stderr, /npm run changeset/);
-    assert.match(result.stderr, /packages\/opencode-v1\/src\/server\.ts/);
+    assert.match(result.stderr, /packages\/opencode\/src\/server\.ts/);
   } finally {
     repository.cleanup();
   }
@@ -64,10 +64,10 @@ test("fails a source change without a changeset", () => {
 test("passes a source change with a patch changeset", () => {
   const repository = useRepository();
   try {
-    repository.write("packages/opencode-v1/src/server.ts", "export {}\n");
+    repository.write("packages/opencode/src/server.ts", "export {}\n");
     repository.write(
       ".changeset/fix.md",
-      '---\n"@minions/opencode-v1": patch\n---\nFix delegation.\n',
+      '---\n"@minions/opencode": patch\n---\nFix delegation.\n',
     );
     repository.git("add", "-A");
     repository.git("commit", "--quiet", "-m", "change source");

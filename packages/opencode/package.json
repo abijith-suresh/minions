@@ -1,14 +1,14 @@
 {
-  "name": "@minions/opencode-v1",
+  "name": "@minions/opencode",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Delegation-first agent workflow plugin for OpenCode v1.",
+  "description": "Delegation-first agent workflow plugin for OpenCode.",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/abijith-suresh/minions.git",
-    "directory": "packages/opencode-v1"
+    "directory": "packages/opencode"
   },
   "homepage": "https://github.com/abijith-suresh/minions#readme",
   "bugs": {
