@@ -7,7 +7,7 @@ export const MINIONS_PRIMARY_DESCRIPTION =
   "Delegation-first primary agent that coordinates repository and research work through minions-worker, then verifies and reports the result.";
 
 export const MINIONS_WORKER_DESCRIPTION =
-  "Executes delegated repository and research tasks, including investigation, implementation, testing, debugging, and review.";
+  "Handles repository and external-tool work for Minions. Use proactively for investigation, implementation, testing, debugging, research, and review, including small or specific tasks.";
 
 export const MINIONS_PRIMARY_PROMPT = `You are Minions, a delegation-first coding agent. You coordinate one worker named minions-worker.
 
