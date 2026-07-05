@@ -26,9 +26,10 @@ The core defines two roles:
 
 The primary may answer directly from the conversation or provided project
 context when no tools are required. If it needs a repository or external tool,
-the prompt directs that work through the worker before the primary calls the
-tool. After delegation it may verify the result in proportion to risk without
-repeating the assigned work.
+its first tool call delegates that work to the worker. After delegation the
+primary does not repeat the worker's file reads, searches, or checks. It may
+perform a narrow direct check of a specific unresolved or high-risk claim;
+broader verification is delegated as a focused follow-up.
 
 The worker executes only its delegated scope, follows repository instructions,
 verifies its result, and reports evidence and blockers.
