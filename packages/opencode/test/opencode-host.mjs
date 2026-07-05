@@ -129,10 +129,12 @@ try {
   const config = join(temporaryRoot, "config");
   const data = join(temporaryRoot, "data");
   const cache = join(temporaryRoot, "cache");
+  const state = join(temporaryRoot, "state");
   mkdirSync(home, { recursive: true });
   mkdirSync(join(config, "opencode", "node_modules"), { recursive: true });
   mkdirSync(data, { recursive: true });
   mkdirSync(cache, { recursive: true });
+  mkdirSync(state, { recursive: true });
 
   const port = await availablePort();
   let stdout = "";
@@ -149,6 +151,7 @@ try {
         XDG_CACHE_HOME: cache,
         XDG_CONFIG_HOME: config,
         XDG_DATA_HOME: data,
+        XDG_STATE_HOME: state,
       },
       stdio: ["ignore", "pipe", "pipe"],
     },

@@ -8,6 +8,7 @@ The adapter currently registers:
 
 - `minions` as a selectable, non-default primary agent
 - `minions-worker` as a hidden subagent
+- A delegation-first policy for tool-dependent repository and research work
 - Task permissions that expose only `minions-worker` to the primary
 - A task denial that prevents the worker from delegating recursively
 - A `/minions-model` TUI command for globally selecting the worker model

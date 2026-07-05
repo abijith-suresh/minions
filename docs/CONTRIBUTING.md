@@ -1,4 +1,4 @@
-# Contributing
+# Contributing to Minions
 
 Minions is currently in its initial development phase.
 
@@ -33,3 +33,12 @@ Husky runs Biome and commit message validation during commits, then the full ver
 suite before pushes. Commit messages follow the Conventional Commits format.
 
 Direct pushes to `main` are protected.
+
+## Documentation
+
+- `README.md` provides the user-facing project overview.
+- `packages/opencode/README.md` documents plugin installation and usage.
+- `docs/CONTEXT.md` records product goals, non-goals, and constraints.
+- `docs/ARCHITECTURE.md` describes current technical behavior and invariants.
+- `AGENTS.md` defines repository guidance for coding agents and documentation
+  ownership.
