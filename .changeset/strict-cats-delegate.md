@@ -2,4 +2,4 @@
 "@abijith-suresh/minions-opencode": patch
 ---
 
-Require the primary agent to delegate all tool-dependent repository and research work before acting, with a stricter worker execution brief.
+Require the primary to delegate before using repository or research tools while allowing direct answers from provided context, and require evidence-aware worker reports.

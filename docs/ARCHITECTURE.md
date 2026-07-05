@@ -24,10 +24,11 @@ The core defines two roles:
 | `minions` | Selectable primary | Brief the worker, coordinate work, verify results, and answer the user |
 | `minions-worker` | Hidden subagent | Execute delegated investigation, implementation, testing, debugging, research, and review |
 
-The primary prompt directs tool-dependent repository and research work through
-the worker before direct execution. It may answer or clarify without
-delegation when no tools are required. After delegation it may verify the
-result in proportion to risk without repeating the assigned work.
+The primary may answer directly from the conversation or provided project
+context when no tools are required. If it needs a repository or external tool,
+the prompt directs that work through the worker before the primary calls the
+tool. After delegation it may verify the result in proportion to risk without
+repeating the assigned work.
 
 The worker executes only its delegated scope, follows repository instructions,
 verifies its result, and reports evidence and blockers.
