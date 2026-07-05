@@ -8,6 +8,8 @@ The adapter currently registers:
 
 - `minions` as a selectable, non-default primary agent
 - `minions-worker` as a hidden subagent
+- A coordination policy that delegates all tool-dependent repository and
+  research work to the worker before direct action
 - Task permissions that expose only `minions-worker` to the primary
 - A task denial that prevents the worker from delegating recursively
 - A `/minions-model` TUI command for globally selecting the worker model
@@ -34,3 +36,7 @@ opencode plugin "$PWD/packages/opencode" --global --force
 Start OpenCode, select `minions` as the primary agent, and run
 `/minions-model` to choose the worker model. Rebuild the package before
 restarting OpenCode after local source changes.
+
+Manual live-model routing and quality checks are specified in the repository's
+versioned
+[delegation policy evaluation](https://github.com/abijith-suresh/minions/blob/main/docs/evaluations/delegation-policy-v1.md).

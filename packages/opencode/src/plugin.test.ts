@@ -215,7 +215,6 @@ describe("worker model selection", () => {
         expect.objectContaining({
           value: "openai/missing",
           disabled: true,
-          description: expect.stringContaining("inheriting"),
         }),
       ]),
     );

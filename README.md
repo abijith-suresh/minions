@@ -1,6 +1,8 @@
 # Minions
 
-Minions is an experimental OpenCode plugin that adds a selectable primary agent which delegates substantive work to one hidden worker agent.
+Minions is an experimental OpenCode plugin that adds a selectable,
+coordination-only primary agent which delegates repository and research work
+to one hidden worker agent.
 
 The project currently targets OpenCode `>=1.4.0 <2` and its terminal TUI. Its internal behavior is kept separate from the OpenCode adapter so additional hosts can be evaluated later without coupling the core policy to one plugin API.
 
@@ -13,8 +15,8 @@ ready for installation or general use. APIs and behavior may change in every pul
 
 - One selectable `minions` primary agent
 - One hidden `minions-worker` subagent
-- Prompt-driven delegation of substantive work
-- Main agent retains tools for coordination and verification
+- Prompt-driven mandatory delegation of tool-dependent work
+- Main agent owns coordination, synthesis, and narrow read-only verification
 - Main agent can delegate only to `minions-worker`
 - Worker cannot delegate to other subagents
 - Primary model follows the normal OpenCode TUI selection
@@ -53,3 +55,9 @@ npm run dev --workspace minions-website
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch workflow.
+
+The versioned
+[delegation policy evaluation](docs/evaluations/delegation-policy-v1.md)
+documents the manual live-model regression suite. Live-model evaluations are
+kept out of required CI because their results are stochastic and may incur
+provider costs.
