@@ -17,12 +17,15 @@ ready for installation or general use. APIs and behavior may change in every pul
 - Main agent retains tools for coordination and verification
 - Main agent can delegate only to `minions-worker`
 - Worker cannot delegate to other subagents
-- Primary and worker models inherit the model selected for the conversation
+- Primary model follows the normal OpenCode TUI selection
+- Worker model defaults to inheritance and can be selected globally with
+  `/minions-model`
 - OpenCode-native foreground or background task behavior
 
-Worker model selection through the TUI is planned as a separate slice. The
-current adapter intentionally leaves both agent models unset so OpenCode uses
-its native model inheritance.
+The worker-model picker lists connected models that support tool calls. If a
+saved model is unavailable, Minions retains the preference but temporarily
+inherits the primary model. The saved model becomes active again when it is
+available in a later OpenCode session.
 
 ## Repository layout
 

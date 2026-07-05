@@ -50,7 +50,9 @@ async function availablePort() {
 }
 
 async function agentsFromHost(port, child, output) {
-  const deadline = Date.now() + 30_000;
+  // OpenCode 1.4.0 performs its initial database migrations before serving.
+  // Keep each probe tightly bounded while allowing that one-time setup to finish.
+  const deadline = Date.now() + 90_000;
   let lastError;
 
   while (Date.now() < deadline) {
