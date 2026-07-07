@@ -78,10 +78,6 @@ async function agentsFromHost(port, child, output) {
   );
 }
 
-function taskPermissions(agent) {
-  return agent.permission.filter(({ permission }) => permission === "task");
-}
-
 let host;
 
 try {
@@ -166,13 +162,13 @@ try {
   const agents = await agentsFromHost(port, host, () => `stdout:\n${stdout}\nstderr:\n${stderr}`);
   const primary = agents.find(({ name }) => name === "minions");
   const minion = agents.find(({ name }) => name === "minion");
+  const build = agents.find(({ name }) => name === "build");
+  const plan = agents.find(({ name }) => name === "plan");
 
   assert.equal(primary, undefined, "OpenCode should not register a Minions primary agent");
-  assert.ok(minion, "OpenCode should register the default Minions-managed subagent");
-  assert.equal(minion.mode, "subagent");
-  assert.equal(minion.hidden, true);
-  assert.equal(minion.model, undefined);
-  assert.deepEqual(taskPermissions(minion), [{ permission: "task", action: "deny", pattern: "*" }]);
+  assert.equal(minion, undefined, "OpenCode should not register a hidden Minions subagent");
+  assert.ok(build, "OpenCode should still expose the built-in build agent");
+  assert.ok(plan, "OpenCode should still expose the built-in plan agent");
 } finally {
   if (host && host.exitCode === null && host.signalCode === null) {
     const signalHost = (signal) => {

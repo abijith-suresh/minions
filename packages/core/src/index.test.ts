@@ -1,41 +1,22 @@
 import { describe, expect, test } from "vitest";
 
 import {
-  createDefaultMinionContract,
-  MINIONS_DEFAULT_SUBAGENT_ID,
-  MINIONS_DELEGATE_SKILL_ID,
+  MINIONS_CORE_VERSION,
+  MINIONS_MANAGED_STATE_VERSION,
   MINIONS_PLUGIN_ID,
+  type MinionsAgentOwnership,
 } from "./index.ts";
 
-describe("@minions/core default subagent contract", () => {
-  test("exposes stable plugin and default subagent identifiers", () => {
+describe("@minions/core agent manager contract", () => {
+  test("exposes stable manager identifiers", () => {
+    expect(MINIONS_CORE_VERSION).toBe(1);
     expect(MINIONS_PLUGIN_ID).toBe("minions");
-    expect(MINIONS_DEFAULT_SUBAGENT_ID).toBe("minion");
-    expect(MINIONS_DELEGATE_SKILL_ID).toBe("minions-delegate");
+    expect(MINIONS_MANAGED_STATE_VERSION).toBe(1);
   });
 
-  test("defines a hidden subagent that cannot delegate", () => {
-    expect(createDefaultMinionContract()).toMatchObject({
-      id: MINIONS_DEFAULT_SUBAGENT_ID,
-      kind: "subagent",
-      visibility: "hidden",
-      model: { strategy: "inherit" },
-      delegation: { enabled: false },
-    });
-  });
-
-  test("returns fresh contract state", () => {
-    const first = createDefaultMinionContract();
-    const second = createDefaultMinionContract();
-
-    expect(first).toEqual(second);
-    expect(first).not.toBe(second);
-    expect(first.delegation).not.toBe(second.delegation);
-  });
-});
-
-describe("@minions/core delegation skill", () => {
-  test("exposes the shipped skill identifier", () => {
-    expect(MINIONS_DELEGATE_SKILL_ID).toBe("minions-delegate");
+  test("defines ownership labels for agent inventory", () => {
+    const ownerships: MinionsAgentOwnership[] = ["built-in", "user", "minions", "unknown"];
+    expect(ownerships).toContain("built-in");
+    expect(ownerships).toContain("user");
   });
 });

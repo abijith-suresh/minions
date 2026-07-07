@@ -8,7 +8,7 @@ const contributingUrl = "https://github.com/abijith-suresh/minions/blob/main/doc
 
 <SiteLayout
   title="Minions — agent management for OpenCode"
-  description="A pre-v1 OpenCode plugin for managing agents, subagents, models, prompts, and permissions from one TUI."
+  description="A pre-v1 OpenCode plugin for inspecting and editing agents, models, prompts, and permissions from one TUI."
 >
   <header class="site-header">
     <a class="wordmark" href={import.meta.env.BASE_URL} aria-label="Minions home">
@@ -28,8 +28,8 @@ const contributingUrl = "https://github.com/abijith-suresh/minions/blob/main/doc
         <p class="kicker"><span>OpenCode plugin</span><span>pre-v1 / private</span></p>
         <h1 id="hero-title">Manage<br>the agents.<br><em>Keep control.</em></h1>
         <p class="hero-summary">
-          Minions is becoming a TUI-first control panel for OpenCode agents, subagents, models,
-          prompts, permissions, and explicit delegation workflows.
+          Minions is becoming a TUI-first control panel for inspecting and editing OpenCode agents,
+          models, prompts, visibility, and permissions.
         </p>
         <div class="hero-actions">
           <a class="primary-link" href={sourceUrl}
@@ -60,7 +60,7 @@ const contributingUrl = "https://github.com/abijith-suresh/minions/blob/main/doc
             <span class="node-index">02</span>
             <div>
               <strong>agents</strong>
-              <small>built-in · user · Minions-managed</small>
+              <small>inspect · edit · override</small>
             </div>
             <span class="node-action">configure</span>
           </li>
@@ -96,8 +96,8 @@ const contributingUrl = "https://github.com/abijith-suresh/minions/blob/main/doc
         <h2 id="workflow-title">A control panel for agents.</h2>
         <p>
           Minions is moving agent setup out of scattered config files and into one OpenCode TUI
-          flow. Delegation remains available, but as an explicit workflow rather than a mandatory
-          primary-agent replacement.
+          flow. The plugin edits common agent settings through OpenCode instead of replacing
+          OpenCode's execution model.
         </p>
       </div>
 
@@ -114,7 +114,7 @@ const contributingUrl = "https://github.com/abijith-suresh/minions/blob/main/doc
           <span class="step-number">02</span>
           <div>
             <h3>Execute</h3>
-            <p>Configure models, prompts, visibility, permissions, and subagent access.</p>
+            <p>Configure descriptions, modes, models, prompts, visibility, and enabled state.</p>
           </div>
           <span class="role-tag worker">manage</span>
         </li>
@@ -146,18 +146,18 @@ const contributingUrl = "https://github.com/abijith-suresh/minions/blob/main/doc
         </article>
         <article>
           <span class="card-mark" aria-hidden="true">B</span>
-          <h3>Managed subagents</h3>
+          <h3>Agent editing</h3>
           <p>
-            The default Minions subagent is <code>minion</code>. Delegation uses it only when the
-            user explicitly invokes the workflow.
+            Minions edits agent settings through OpenCode APIs and keeps built-in, user, and
+            Minions-owned configuration clearly labeled.
           </p>
         </article>
         <article>
           <span class="card-mark" aria-hidden="true">C</span>
           <h3>Host-native execution</h3>
           <p>
-            Minions injects managed configuration at runtime. Foreground, background, and task
-            execution still follow what OpenCode supports.
+            Minions changes agent configuration through OpenCode APIs. Foreground, background, and
+            task execution still follow what OpenCode supports.
           </p>
         </article>
       </div>
@@ -168,8 +168,8 @@ const contributingUrl = "https://github.com/abijith-suresh/minions/blob/main/doc
         <p class="section-number">03 / field status</p>
         <h2 id="status-title">Under active construction.</h2>
         <p>
-          Minions is private and pre-v1. The earlier delegation prototype is being rewritten into an
-          agent manager before the first public release.
+          Minions is private and pre-v1. The earlier delegation prototype is being rewritten into a
+          clean agent management plane before the first public release.
         </p>
       </div>
 
