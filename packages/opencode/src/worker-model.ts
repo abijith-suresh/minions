@@ -2,7 +2,8 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
-export const MINIONS_WORKER_MODEL_STATE_FILE = "minions-worker-model.json";
+export const MINIONS_MINION_MODEL_STATE_FILE = "minion-model.json";
+export const MINIONS_LEGACY_WORKER_MODEL_STATE_FILE = "minions-worker-model.json";
 
 export interface WorkerModelPreference {
   readonly workerModel?: string;
@@ -44,25 +45,37 @@ export function defaultOpenCodeStateDirectory(): string {
 }
 
 export function workerModelStatePath(stateDirectory = defaultOpenCodeStateDirectory()): string {
-  return join(stateDirectory, MINIONS_WORKER_MODEL_STATE_FILE);
+  return join(stateDirectory, MINIONS_MINION_MODEL_STATE_FILE);
+}
+
+export function legacyWorkerModelStatePath(
+  stateDirectory = defaultOpenCodeStateDirectory(),
+): string {
+  return join(stateDirectory, MINIONS_LEGACY_WORKER_MODEL_STATE_FILE);
+}
+
+async function readWorkerModelStateFile(file: string): Promise<WorkerModelPreference> {
+  const parsed = JSON.parse(await readFile(file, "utf8")) as Record<string, unknown>;
+  const workerModel = isModelId(parsed.workerModel) ? parsed.workerModel : undefined;
+  return {
+    ...(workerModel ? { workerModel } : {}),
+    availableModelIds: Array.isArray(parsed.availableModelIds)
+      ? parsed.availableModelIds.filter(isModelId)
+      : [],
+  };
 }
 
 export async function readWorkerModelPreference(
   stateDirectory?: string,
 ): Promise<WorkerModelPreference> {
   try {
-    const parsed = JSON.parse(
-      await readFile(workerModelStatePath(stateDirectory), "utf8"),
-    ) as Record<string, unknown>;
-    const workerModel = isModelId(parsed.workerModel) ? parsed.workerModel : undefined;
-    return {
-      ...(workerModel ? { workerModel } : {}),
-      availableModelIds: Array.isArray(parsed.availableModelIds)
-        ? parsed.availableModelIds.filter(isModelId)
-        : [],
-    };
+    return await readWorkerModelStateFile(workerModelStatePath(stateDirectory));
   } catch {
-    return { availableModelIds: [] };
+    try {
+      return await readWorkerModelStateFile(legacyWorkerModelStatePath(stateDirectory));
+    } catch {
+      return { availableModelIds: [] };
+    }
   }
 }
 

@@ -61,17 +61,17 @@ Minions does not currently provide:
   Minions-managed agents
 - Pre-v1 releases may change behavior in any patch release
 
-## Transitional Implementation
+## Current Runtime Slice
 
-The current package still contains the earlier delegation prototype:
+The current package has removed the earlier delegation-primary prototype. It
+currently provides:
 
-- a selectable `minions` primary agent
-- a hidden `minions-worker` subagent
-- a `/minions-model` worker-model selector
+- one `/minions` TUI entry point
+- a hidden Minions-managed `minion` subagent
+- minion model selection and diagnostics inside `/minions`
 
-That implementation is transitional and will be replaced before the first
-public release by the `/minions` agent manager, a hidden `minion` subagent, and
-an explicitly invoked delegation skill/workflow.
+The broader agent manager and explicit delegation skill/workflow are still
+pre-v1 follow-up work.
 
 ## Success Criteria
 

@@ -2,7 +2,7 @@
 
 This document describes Minions' intended architecture during the pre-v1
 rewrite. Source code and tests remain authoritative for runtime behavior while
-the package moves from the delegation prototype to the agent manager model.
+the package grows from the first agent-manager runtime slice.
 
 ## Overview
 
@@ -82,16 +82,17 @@ The intended behavior is:
 OpenCode remains responsible for task execution, foreground/background
 behavior, model providers, and host-level scheduling.
 
-## Transitional Runtime
+## Current Runtime Slice
 
-The current implementation still contains the earlier delegation prototype:
+The current implementation provides the first local-dogfooding slice:
 
-- a selectable `minions` primary agent
-- a hidden `minions-worker` subagent
-- `/minions-model` for selecting the worker model
+- one `/minions` command that opens the Minions manager dialog
+- a hidden `minion` subagent injected through the OpenCode config hook
+- model selection and diagnostics inside the manager
+- model fallback to primary inheritance when the selected model is unavailable
 
-Those runtime details are transitional and should not be treated as the target
-architecture for the first public release.
+It does not register a selectable `minions` primary agent. Delegation remains a
+future explicit skill/workflow rather than a runtime mode enabled by default.
 
 ## Plugin Packaging
 

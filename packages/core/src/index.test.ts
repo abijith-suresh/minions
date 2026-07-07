@@ -1,33 +1,21 @@
 import { describe, expect, test } from "vitest";
 
-import { createMinionsDelegationContract, MINIONS_PRIMARY_ID, MINIONS_WORKER_ID } from "./index.ts";
+import {
+  createDefaultMinionContract,
+  MINIONS_DEFAULT_SUBAGENT_ID,
+  MINIONS_PLUGIN_ID,
+} from "./index.ts";
 
-describe("@minions/core delegation contract", () => {
-  test("exposes distinct role identifiers", () => {
-    expect(MINIONS_PRIMARY_ID).not.toBe(MINIONS_WORKER_ID);
+describe("@minions/core default subagent contract", () => {
+  test("exposes stable plugin and default subagent identifiers", () => {
+    expect(MINIONS_PLUGIN_ID).toBe("minions");
+    expect(MINIONS_DEFAULT_SUBAGENT_ID).toBe("minion");
   });
 
-  test("defines a selectable primary with one allowed worker", () => {
-    const { primary } = createMinionsDelegationContract();
-
-    expect(primary).toMatchObject({
-      id: MINIONS_PRIMARY_ID,
-      kind: "primary",
-      visibility: "selectable",
-      model: { strategy: "inherit" },
-      delegation: {
-        enabled: true,
-        allowedRoleIds: [MINIONS_WORKER_ID],
-      },
-    });
-  });
-
-  test("defines a hidden worker that cannot delegate", () => {
-    const { worker } = createMinionsDelegationContract();
-
-    expect(worker).toMatchObject({
-      id: MINIONS_WORKER_ID,
-      kind: "worker",
+  test("defines a hidden subagent that cannot delegate", () => {
+    expect(createDefaultMinionContract()).toMatchObject({
+      id: MINIONS_DEFAULT_SUBAGENT_ID,
+      kind: "subagent",
       visibility: "hidden",
       model: { strategy: "inherit" },
       delegation: { enabled: false },
@@ -35,11 +23,11 @@ describe("@minions/core delegation contract", () => {
   });
 
   test("returns fresh contract state", () => {
-    const first = createMinionsDelegationContract();
-    const second = createMinionsDelegationContract();
+    const first = createDefaultMinionContract();
+    const second = createDefaultMinionContract();
 
     expect(first).toEqual(second);
     expect(first).not.toBe(second);
-    expect(first.primary.delegation).not.toBe(second.primary.delegation);
+    expect(first.delegation).not.toBe(second.delegation);
   });
 });

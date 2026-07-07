@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Delegation-first agent workflow plugin for OpenCode.",
+  "description": "TUI-first agent manager plugin for OpenCode.",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -15,14 +15,11 @@ plugin provides one `/minions` control panel for inspecting and configuring:
 - visibility and permissions
 - task access between primary agents and subagents
 
-The intended default subagent is `minion`. Delegation will be shipped as an
-explicitly invoked skill or workflow that can use `minion`; users should not
-need to switch to a special Minions primary agent for normal work.
-
-The current implementation is transitional. It still contains the earlier
-prototype that registers a `minions` primary agent, a `minions-worker`
-subagent, and `/minions-model` for worker model selection. That prototype will
-be replaced before the first public release.
+The current runtime slice registers the hidden `minion` subagent and one
+`/minions` TUI entry point with model selection and diagnostics. Delegation will
+be shipped later as an explicitly invoked skill or workflow that can use
+`minion`; users should not need to switch to a special Minions primary agent for
+normal work.
 
 ## Local dogfooding
 
@@ -35,9 +32,8 @@ npm run build --workspace @abijith-suresh/minions-opencode
 opencode plugin "$PWD/packages/opencode" --global --force
 ```
 
-Start OpenCode after registration. During the transitional prototype, select
-`minions` as the primary agent and run `/minions-model` to choose the worker
-model. After the agent-manager rewrite, use `/minions` as the single control
-panel.
+Start OpenCode after registration and run `/minions` to open the control panel.
+Use the `Minion model` menu item to choose the model used by the hidden
+`minion` subagent.
 
 Rebuild the package before restarting OpenCode after local source changes.
