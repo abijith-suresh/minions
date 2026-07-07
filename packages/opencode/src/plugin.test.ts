@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Config } from "@opencode-ai/plugin";
@@ -10,6 +10,7 @@ import type {
 } from "@opencode-ai/plugin/tui";
 import { describe, expect, test, vi } from "vitest";
 import server, { applyMinionsConfig, createMinionsHooks, createOpenCodeAgents } from "./server.ts";
+import { installMinionsDelegateSkill, minionsDelegateSkillPath } from "./skill.ts";
 import tui, { createWorkerModelOptions, registerMinionsManager } from "./tui.ts";
 import {
   availableWorkerModels,
@@ -264,11 +265,13 @@ describe("minion model selection", () => {
     }
   });
 
-  test("opens one /minions command with a model selector inside the manager", async () => {
+  test("opens one /minions command with skill install, model selector, and diagnostics", async () => {
     const stateDirectory = await mkdtemp(join(tmpdir(), "minions-tui-model-test-"));
+    const configDirectory = await mkdtemp(join(tmpdir(), "minions-tui-config-test-"));
     let commands: TuiCommand[] = [];
     const selects: TuiDialogSelectProps<unknown>[] = [];
     const alerts: TuiDialogAlertProps[] = [];
+    const toasts: unknown[] = [];
     const dispose = vi.fn(async () => ({ data: true }));
     const api = {
       command: {
@@ -284,7 +287,7 @@ describe("minion model selection", () => {
         instance: { dispose },
         path: {
           get: async () => ({
-            data: { state: stateDirectory },
+            data: { config: configDirectory, state: stateDirectory },
           }),
         },
       },
@@ -311,7 +314,9 @@ describe("minion model selection", () => {
           },
           clear: () => {},
         },
-        toast: () => {},
+        toast: (toast: unknown) => {
+          toasts.push(toast);
+        },
       },
     } as unknown as TuiPluginApi;
 
@@ -325,6 +330,27 @@ describe("minion model selection", () => {
 
       commands[0]?.onSelect?.();
       expect(selects.at(-1)?.title).toBe("Minions");
+      const skillMenuItem = selects
+        .at(-1)
+        ?.options.find((option) => option.value === "delegation-skill");
+      expect(skillMenuItem).toBeDefined();
+      if (!skillMenuItem) throw new Error("Expected the delegation skill menu option");
+      selects.at(-1)?.onSelect?.(skillMenuItem);
+
+      await vi.waitFor(() => expect(alerts.at(-1)?.title).toBe("Delegation skill installed"));
+      expect(await readFile(minionsDelegateSkillPath(configDirectory), "utf8")).toContain(
+        "name: minions-delegate",
+      );
+      expect(toasts).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            variant: "success",
+            message: expect.stringContaining("minions-delegate"),
+          }),
+        ]),
+      );
+
+      commands[0]?.onSelect?.();
       const modelMenuItem = selects
         .at(-1)
         ?.options.find((option) => option.value === "minion-model");
@@ -356,6 +382,7 @@ describe("minion model selection", () => {
       expect(alerts.at(-1)?.message).toContain("Managed subagent: minion");
     } finally {
       await rm(stateDirectory, { recursive: true, force: true });
+      await rm(configDirectory, { recursive: true, force: true });
     }
   });
 
@@ -410,6 +437,22 @@ describe("minion model selection", () => {
       });
     } finally {
       await rm(stateDirectory, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("delegation skill installer", () => {
+  test("writes the minions-delegate skill under the OpenCode config directory", async () => {
+    const configDirectory = await mkdtemp(join(tmpdir(), "minions-skill-test-"));
+
+    try {
+      const skillPath = await installMinionsDelegateSkill(configDirectory);
+
+      expect(skillPath).toBe(minionsDelegateSkillPath(configDirectory));
+      expect(await readFile(skillPath, "utf8")).toContain("name: minions-delegate");
+      expect(await readFile(skillPath, "utf8")).toContain("minion");
+    } finally {
+      await rm(configDirectory, { recursive: true, force: true });
     }
   });
 });
