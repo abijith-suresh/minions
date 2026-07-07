@@ -1,25 +1,28 @@
 # @abijith-suresh/minions-opencode
 
-OpenCode adapter for Minions. The current package supports OpenCode `>=1.4.0 <2`.
+OpenCode adapter for Minions. The package supports OpenCode `>=1.4.0 <2`.
 
 This package is private while the initial plugin behavior is under active development. It is not ready for installation or use.
 
-The adapter currently registers:
+Minions is being rewritten into a TUI-first OpenCode agent manager. The target
+plugin provides one `/minions` control panel for inspecting and configuring:
 
-- `minions` as a selectable, non-default primary agent
-- `minions-worker` as a hidden subagent
-- A delegation-first policy for tool-dependent repository and research work
-- Task permissions that expose only `minions-worker` to the primary
-- A task denial that prevents the worker from delegating recursively
-- A `/minions-model` TUI command for globally selecting the worker model
+- built-in OpenCode agents
+- user-configured agents
+- Minions-managed agents and subagents
+- model preferences
+- prompts and workflow assets
+- visibility and permissions
+- task access between primary agents and subagents
 
-The primary always uses OpenCode's normal conversation model. The worker
-inherits that model by default, or uses the explicit connected, tool-capable
-model selected through `/minions-model`. An unavailable saved model
-temporarily falls back to inheritance without discarding the preference.
+The intended default subagent is `minion`. Delegation will be shipped as an
+explicitly invoked skill or workflow that can use `minion`; users should not
+need to switch to a special Minions primary agent for normal work.
 
-Foreground and background execution are owned by OpenCode's task
-implementation; Minions does not replace its scheduling behavior.
+The current implementation is transitional. It still contains the earlier
+prototype that registers a `minions` primary agent, a `minions-worker`
+subagent, and `/minions-model` for worker model selection. That prototype will
+be replaced before the first public release.
 
 ## Local dogfooding
 
@@ -32,6 +35,9 @@ npm run build --workspace @abijith-suresh/minions-opencode
 opencode plugin "$PWD/packages/opencode" --global --force
 ```
 
-Start OpenCode, select `minions` as the primary agent, and run
-`/minions-model` to choose the worker model. Rebuild the package before
-restarting OpenCode after local source changes.
+Start OpenCode after registration. During the transitional prototype, select
+`minions` as the primary agent and run `/minions-model` to choose the worker
+model. After the agent-manager rewrite, use `/minions` as the single control
+panel.
+
+Rebuild the package before restarting OpenCode after local source changes.

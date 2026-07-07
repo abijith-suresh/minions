@@ -1,95 +1,119 @@
 # Architecture
 
-This document describes the current implemented behavior of Minions. It is
-descriptive, not prescriptive. When this document and the source disagree, the
-source is authoritative.
+This document describes Minions' intended architecture during the pre-v1
+rewrite. Source code and tests remain authoritative for runtime behavior while
+the package moves from the delegation prototype to the agent manager model.
 
 ## Overview
 
-Minions is an npm workspace repository containing a host-neutral agent
-contract, an OpenCode v1 adapter, and a private Astro website.
+Minions is an npm workspace repository containing host-neutral agent-management
+concepts, an OpenCode v1 adapter, and a private Astro website.
 
-- `packages/core/` defines role identities, descriptions, prompts, and the
-  delegation contract without depending on a host API.
-- `packages/opencode/` maps that contract to OpenCode agents and provides the
-  worker-model selector.
+- `packages/core/` owns host-neutral state and policy concepts.
+- `packages/opencode/` maps Minions-managed state into OpenCode v1 plugin
+  hooks and TUI screens.
 - `apps/website/` contains the static project website.
 
-## Agent Contract
+## Product Architecture
 
-The core defines two roles:
+The target product has one public TUI entry point:
 
-| Role | Mode | Responsibility |
-| --- | --- | --- |
-| `minions` | Selectable primary | Brief the worker, coordinate work, verify results, and answer the user |
-| `minions-worker` | Hidden subagent | Execute delegated investigation, implementation, testing, debugging, research, and review |
+```text
+/minions
+```
 
-The primary may answer directly from the conversation or provided project
-context when no tools are required. If it needs a repository or external tool,
-its first tool call delegates that work to the worker. After delegation the
-primary does not repeat the worker's file reads, searches, or checks. It may
-perform a narrow direct check of a specific unresolved or high-risk claim;
-broader verification is delegated as a focused follow-up.
+That command opens a manager for:
 
-The worker executes only its delegated scope, follows repository instructions,
-verifies its result, and reports evidence and blockers.
+- built-in OpenCode agents
+- user-configured agents
+- Minions-managed agents and subagents
+- model preferences
+- prompts and workflow assets
+- permissions, visibility, and task access
+- diagnostics for what Minions injects at runtime
 
-## OpenCode Permission Boundary
+Minions should label ownership clearly. Built-in agents and user-configured
+agents can be inspected, while Minions-owned agents and Minions-owned runtime
+overrides are managed by the plugin.
 
-The OpenCode adapter maps the core contract to reserved agent definitions:
+## Managed State
 
-- The primary denies task access by default and allows only
-  `minions-worker`.
-- The worker denies task access entirely.
-- The worker is hidden from normal agent selection.
-- Reserved Minions definitions replace user definitions with the same IDs so
-  configuration cannot weaken the boundary.
-- The plugin does not change the user's default agent or global tool
-  permissions.
+The intended runtime model is:
 
-Delegation behavior is prompt-guided. Worker visibility and task access are
-enforced by OpenCode configuration.
+```text
+OpenCode resolved config
+  + Minions-owned state
+  -> final runtime config injected by the plugin
+```
 
-## Model Selection
+Minions should prefer state it owns over direct edits to user OpenCode config.
+This keeps changes reversible and reduces the risk of corrupting user-managed
+configuration.
 
-The primary always follows the model selected for the current OpenCode
-conversation.
+The state model is expected to cover:
 
-The `/minions-model` TUI command lists connected, non-deprecated models that
-support tool calls. The user may select one for the worker or inherit the
-primary model. The preference is stored in OpenCode's global state directory
-and applies across projects.
+- managed agents and subagents
+- built-in agent overrides
+- per-agent model choices
+- permission and task-access rules
+- shipped workflow assets such as delegation
 
-The stored state contains the selected model and the last connected-model
-catalogue. When the selected model is unavailable, the server omits the worker
-model override so OpenCode inherits the primary model. The selection is
-retained and becomes effective again when the model reappears.
+## Default Subagent
 
-Writes use a temporary file followed by a rename. The TUI refreshes model
-availability when OpenCode instances or providers change and reloads the
-instance when the effective worker model changes.
+The default Minions-managed subagent is named `minion`.
+
+It is hidden by default and must not be able to delegate recursively. It is
+available for explicitly invoked workflows, not as part of a mandatory primary
+agent replacement.
+
+## Delegation Workflow
+
+Delegation is no longer the product's central runtime mode. It is a workflow
+asset shipped with Minions.
+
+The intended behavior is:
+
+- the user explicitly invokes the delegation skill/workflow;
+- the current primary agent can keep being `build`, `plan`, or another agent;
+- delegated repository or tool-dependent work can be sent to `minion`;
+- the primary synthesizes from the subagent's evidence instead of repeating the
+  same broad work.
+
+OpenCode remains responsible for task execution, foreground/background
+behavior, model providers, and host-level scheduling.
+
+## Transitional Runtime
+
+The current implementation still contains the earlier delegation prototype:
+
+- a selectable `minions` primary agent
+- a hidden `minions-worker` subagent
+- `/minions-model` for selecting the worker model
+
+Those runtime details are transitional and should not be treated as the target
+architecture for the first public release.
 
 ## Plugin Packaging
 
 The OpenCode package exports separate server and TUI entry points:
 
-- `./server` registers the configuration hook and reserved agents.
-- `./tui` registers the worker-model command and tracks model availability.
+- `./server` registers configuration hooks and runtime agent definitions.
+- `./tui` registers Minions TUI commands and dialogs.
 
-The package build bundles the private core into both entry points. Consumers
-therefore install only `@abijith-suresh/minions-opencode`.
+The package build bundles private core code into the OpenCode adapter. Consumers
+install only `@abijith-suresh/minions-opencode`.
 
 Packed-package smoke tests validate exports and artifacts. Real-host tests run
 the packed plugin against the minimum supported OpenCode release and the
 current v1 release used for development.
 
-## Repository Invariants
+## Target Invariants
 
-- The primary remains selectable and non-default.
-- The worker remains hidden.
-- The primary can delegate only to the worker.
-- The worker cannot delegate.
-- The primary model is never pinned by Minions.
-- An unavailable selected worker model falls back to inheritance without
-  discarding the selection.
+- `/minions` is the only Minions command users need to open the manager.
+- Minions distinguishes built-in, user-configured, and Minions-managed agents.
+- Minions-owned runtime changes are derived from Minions-owned state.
+- `minion` is hidden by default and cannot delegate recursively.
+- Delegation is explicitly invoked as a skill/workflow.
+- Minions does not replace OpenCode's execution scheduler or model provider
+  system.
 - Host-specific behavior remains outside `packages/core/`.

@@ -2,56 +2,86 @@
 
 ## Problem
 
-Coding agents often combine coordination and execution in one context. On
-larger tasks this makes it harder to keep the main conversation focused,
-delegate work consistently, and verify the result before reporting it.
+OpenCode has powerful agent primitives, but managing them is still mostly a
+configuration-file workflow. Users who want to tune built-in agents, create
+subagents, adjust prompts, select models, or tighten permissions need to edit
+config by hand and keep the resulting agent graph in their head.
+
+That friction makes it harder to experiment with agent teams safely. It also
+pushes workflow ideas such as delegation into bespoke orchestrator agents when
+they would often be better as explicit, reusable skills or workflows.
 
 ## Target User
 
-Minions is for developers using OpenCode who want a delegation-first workflow
-with a primary agent coordinating one worker. The worker may use a different
-model so users can choose the cost and capability balance for execution.
+Minions is for developers using OpenCode who want a TUI-first way to inspect
+and configure their agent system without replacing OpenCode's native behavior.
+
+The primary user is comfortable experimenting with agents, prompts, models, and
+permissions, but wants those changes visible, reversible, and easier to reason
+about than hand-edited config.
 
 ## Goals
 
-- **Focused coordination.** The primary delegates tool-dependent repository
-  and research work, evaluates the worker's result, and owns the final answer.
-- **One clear execution path.** The primary delegates only to the Minions
-  worker, and the worker cannot delegate recursively.
-- **Host-native behavior.** OpenCode owns task scheduling, model providers, and
-  foreground or background execution.
-- **Configurable worker model.** Users can inherit the primary model or select
-  a connected, tool-capable model globally.
-- **Portable core policy.** Agent roles and prompts remain separate from the
+- **One control panel.** Provide a single `/minions` TUI entry point for
+  managing agent-related settings.
+- **Agent visibility.** Show built-in agents, user-created agents, and
+  Minions-managed agents with clear ownership.
+- **Managed overrides.** Let Minions create runtime overrides for built-in
+  agents and own the agents it creates.
+- **Subagent management.** Support Minions-managed subagents, including a
+  hidden default subagent named `minion`.
+- **Permission clarity.** Make task access and tool permissions easier to see
+  and modify without hand-editing OpenCode config.
+- **Explicit workflows.** Ship delegation as an explicitly invoked
+  skill/workflow instead of forcing users into a special primary agent.
+- **Host-native behavior.** Let OpenCode own agent execution, task scheduling,
+  model providers, and foreground/background behavior.
+- **Portable policy.** Keep agent and state concepts separate from the
   OpenCode adapter so other hosts can be evaluated later.
 
 ## Non-Goals
 
 Minions does not currently provide:
 
-- Multiple worker roles or workflow profiles
-- Iteration limits, approval gates, or independent verifier agents
-- Its own scheduler or background task system
-- Automatic model selection or model quality ranking
+- A replacement scheduler or background task system
+- A large prebuilt orchestration suite with planner/reviewer/commander loops
+- Automatic model ranking or model selection
+- Memory, rules, worktree orchestration, or review-gate systems
+- Direct ownership of all user OpenCode configuration
 - OpenCode v2, Pi, or other host adapters
 
 ## Constraints
 
 - OpenCode `>=1.4.0 <2`
 - OpenCode terminal TUI
-- One selectable primary and one hidden worker
-- Prompt policy guides primary delegation; OpenCode permissions enforce the
-  allowed worker boundary and prevent recursive delegation
+- One public command surface: `/minions`
+- Runtime behavior should be injected from Minions-owned state where possible
+  instead of directly rewriting user OpenCode config
+- Minions must distinguish built-in agents, user-configured agents, and
+  Minions-managed agents
 - Pre-v1 releases may change behavior in any patch release
+
+## Transitional Implementation
+
+The current package still contains the earlier delegation prototype:
+
+- a selectable `minions` primary agent
+- a hidden `minions-worker` subagent
+- a `/minions-model` worker-model selector
+
+That implementation is transitional and will be replaced before the first
+public release by the `/minions` agent manager, a hidden `minion` subagent, and
+an explicitly invoked delegation skill/workflow.
 
 ## Success Criteria
 
-1. A user can select `minions` as the primary agent without changing their
-   normal OpenCode model selection.
-2. Tool-dependent repository and research requests are delegated to
-   `minions-worker` before the primary performs that work.
-3. The primary evaluates and verifies the worker's result before reporting it.
-4. The primary cannot delegate to another subagent, and the worker cannot
-   delegate recursively.
-5. A selected worker model persists globally and falls back to the primary
-   model while unavailable.
+1. A user can open `/minions` from the OpenCode TUI and see the current agent
+   system.
+2. Built-in, user-configured, and Minions-managed agents are clearly labeled.
+3. A user can configure a Minions-managed `minion` subagent without editing
+   OpenCode config by hand.
+4. A user can control which primary agents may call `minion`.
+5. Delegation is available as an explicitly invoked skill/workflow, not as a
+   mandatory primary-agent replacement.
+6. Minions can inject its managed configuration at runtime without corrupting
+   user-owned config.
