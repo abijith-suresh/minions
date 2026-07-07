@@ -9,17 +9,15 @@ plugin provides one `/minions` control panel for inspecting and configuring:
 
 - built-in OpenCode agents
 - user-configured agents
-- Minions-managed agents and subagents
-- model preferences
-- prompts and workflow assets
+- Minions-managed agents and overrides
+- model preferences and overrides
+- prompts
 - visibility and permissions
 - task access between primary agents and subagents
 
-The current runtime slice registers the hidden `minion` subagent and one
-`/minions` TUI entry point with model selection, delegation-skill installation,
-and diagnostics. Delegation is available through the explicitly invoked
-`minions-delegate` skill that can use `minion`; users do not need to switch to a
-special Minions primary agent for normal work.
+The current runtime slice registers one `/minions` TUI entry point with agent
+inventory, editable agent config fields, and diagnostics. It does not install a
+hidden Minions agent or delegation skill.
 
 ## Local dogfooding
 
@@ -33,21 +31,8 @@ opencode plugin "$PWD/packages/opencode" --global --force
 ```
 
 Start OpenCode after registration and run `/minions` to open the control panel.
-Use the `Minion model` menu item to choose the model used by the hidden
-`minion` subagent.
-
-Use the `Delegation skill` menu item to install or update the global
-`minions-delegate` skill under OpenCode's config directory:
-
-```text
-<opencode config>/skills/minions-delegate/SKILL.md
-```
-
-If OpenCode does not discover the skill immediately, restart or reload OpenCode.
-Then explicitly invoke it from your active agent, for example:
-
-```text
-Use the minions-delegate skill for this task.
-```
+Use `Agents` to inspect detected OpenCode agents and edit description, mode,
+model, prompt, visibility, or enabled state. Changes are written through
+OpenCode's config API and OpenCode is reloaded after each edit.
 
 Rebuild the package before restarting OpenCode after local source changes.

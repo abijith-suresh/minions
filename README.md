@@ -2,8 +2,8 @@
 
 Minions is an experimental OpenCode plugin for managing agents from the TUI.
 The intended product is one `/minions` control panel for inspecting and
-configuring built-in agents, user agents, Minions-managed subagents, models,
-prompts, permissions, visibility, and task access.
+editing built-in agents, user agents, Minions-managed agents, models, prompts,
+permissions, visibility, and task access.
 
 The project currently targets OpenCode `>=1.4.0 <2` and its terminal TUI. Its
 internal behavior is kept separate from the OpenCode adapter so additional
@@ -18,17 +18,17 @@ ready for installation or general use. APIs and behavior may change in every pul
 ## Product direction
 
 - One `/minions` TUI entry point for agent management
-- Built-in agent inspection and Minions-managed overrides
+- Built-in and user-configured agent inspection
+- Agent editing for description, mode, model, prompt, visibility, and enabled
+  state
+- Minions-managed overrides and agents later
 - Minions-managed custom agents and subagents
 - Model, prompt, permission, visibility, and task-access controls
-- A hidden default subagent named `minion`
-- An explicitly invoked delegation skill/workflow that can use `minion`
-- Runtime configuration injection from Minions-owned state instead of direct
-  edits to user OpenCode config
+- OpenCode-native config updates instead of hand-editing config files
 
 The current implementation is an early runtime slice of that direction. It
-registers the hidden `minion` subagent and one `/minions` TUI entry point with
-model selection, delegation-skill installation, and diagnostics.
+registers one `/minions` TUI entry point with agent inventory, agent config
+editing, and diagnostics.
 
 ## Repository layout
 

@@ -11,7 +11,7 @@ concepts, an OpenCode v1 adapter, and a private Astro website.
 
 - `packages/core/` owns host-neutral state and policy concepts.
 - `packages/opencode/` maps Minions-managed state into OpenCode v1 plugin
-  hooks and TUI screens.
+  APIs and TUI screens.
 - `apps/website/` contains the static project website.
 
 ## Product Architecture
@@ -26,11 +26,11 @@ That command opens a manager for:
 
 - built-in OpenCode agents
 - user-configured agents
-- Minions-managed agents and subagents
+- Minions-managed agents and overrides
 - model preferences
-- prompts and workflow assets
+- prompts
 - permissions, visibility, and task access
-- diagnostics for what Minions injects at runtime
+- diagnostics for OpenCode paths, providers, agents, and Minions state
 
 Minions should label ownership clearly. Built-in agents and user-configured
 agents can be inspected, while Minions-owned agents and Minions-owned runtime
@@ -38,7 +38,7 @@ overrides are managed by the plugin.
 
 ## Managed State
 
-The intended runtime model is:
+The intended long-term runtime model is:
 
 ```text
 OpenCode resolved config
@@ -46,9 +46,10 @@ OpenCode resolved config
   -> final runtime config injected by the plugin
 ```
 
-Minions should prefer state it owns over direct edits to user OpenCode config.
-This keeps changes reversible and reduces the risk of corrupting user-managed
-configuration.
+For the first useful slice, Minions edits agent config through OpenCode's config
+API. That keeps behavior aligned with the host and avoids direct ad hoc file
+writes. A later managed-override layer can move repeatable Minions-owned
+changes into versioned state.
 
 The state model is expected to cover:
 
@@ -56,62 +57,44 @@ The state model is expected to cover:
 - built-in agent overrides
 - per-agent model choices
 - permission and task-access rules
-- shipped workflow assets such as delegation
+- curated workflow assets when they are packaged separately from the plugin
 
-## Default Subagent
+## Agent Editing
 
-The default Minions-managed subagent is named `minion`.
+The OpenCode adapter reads the effective agent list from the OpenCode API and
+normalizes it for the TUI. The initial editable fields are:
 
-It is hidden by default and must not be able to delegate recursively. It is
-available for explicitly invoked workflows, not as part of a mandatory primary
-agent replacement.
+- description
+- mode
+- model override
+- prompt override
+- hidden/visible state
+- enabled/disabled state
 
-## Delegation Workflow
-
-Delegation is no longer the product's central runtime mode. It is a workflow
-asset shipped with Minions.
-
-The intended behavior is:
-
-- the user explicitly invokes the delegation skill/workflow;
-- the current primary agent can keep being `build`, `plan`, or another agent;
-- delegated repository or tool-dependent work can be sent to `minion`;
-- the primary synthesizes from the subagent's evidence instead of repeating the
-  same broad work.
+Edits use a read-merge-write cycle through `config.get` and `config.update`,
+then dispose the instance so OpenCode reloads the changed config. The plugin
+does not edit Markdown agent source files directly yet.
 
 OpenCode remains responsible for task execution, foreground/background
 behavior, model providers, and host-level scheduling.
-
-In the OpenCode v1 adapter, the delegation workflow is installed as a
-Minions-managed skill file under the user's OpenCode config directory:
-
-```text
-<opencode config>/skills/minions-delegate/SKILL.md
-```
-
-The `/minions` manager can install or update that file. The skill is explicitly
-invoked by the user and instructs the active primary agent to use the hidden
-`minion` subagent for repository or tool-dependent work.
 
 ## Current Runtime Slice
 
 The current implementation provides the first local-dogfooding slice:
 
 - one `/minions` command that opens the Minions manager dialog
-- a hidden `minion` subagent injected through the OpenCode config hook
-- model selection and diagnostics inside the manager
-- installation of the explicitly invoked `minions-delegate` skill inside the
-  manager
-- model fallback to primary inheritance when the selected model is unavailable
+- agent inventory from OpenCode's agent API
+- editing for description, mode, model, prompt, visibility, and enabled state
+- diagnostics for detected agents, providers, and OpenCode paths
 
-It does not register a selectable `minions` primary agent. Delegation is a
-user-invoked skill/workflow rather than a runtime mode enabled by default.
+It does not register a selectable `minions` primary agent or hidden `minion`
+subagent.
 
 ## Plugin Packaging
 
 The OpenCode package exports separate server and TUI entry points:
 
-- `./server` registers configuration hooks and runtime agent definitions.
+- `./server` registers a compatibility config hook without injecting agents.
 - `./tui` registers Minions TUI commands and dialogs.
 
 The package build bundles private core code into the OpenCode adapter. Consumers
@@ -125,9 +108,9 @@ current v1 release used for development.
 
 - `/minions` is the only Minions command users need to open the manager.
 - Minions distinguishes built-in, user-configured, and Minions-managed agents.
-- Minions-owned runtime changes are derived from Minions-owned state.
-- `minion` is hidden by default and cannot delegate recursively.
-- Delegation is explicitly invoked as a skill/workflow.
+- Agent edits go through OpenCode APIs rather than direct unsupervised file
+  rewrites.
+- Minions does not inject hidden agents by default.
 - Minions does not replace OpenCode's execution scheduler or model provider
   system.
 - Host-specific behavior remains outside `packages/core/`.
