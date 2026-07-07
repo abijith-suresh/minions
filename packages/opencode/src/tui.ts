@@ -1,3 +1,4 @@
+import { MINIONS_DEFAULT_SUBAGENT_ID, MINIONS_PLUGIN_ID } from "@minions/core";
 import type { TuiDialogSelectOption, TuiPluginApi, TuiPluginModule } from "@opencode-ai/plugin/tui";
 import {
   availableWorkerModels,
@@ -46,6 +47,8 @@ interface WorkerModelSnapshot {
   readonly stateDirectory: string;
 }
 
+type MinionsMenuAction = "minion-model" | "diagnostics";
+
 async function workerModelSnapshot(api: TuiPluginApi): Promise<WorkerModelSnapshot> {
   const [pathResult, providersResult] = await Promise.all([
     api.client.path.get({}, { throwOnError: true }),
@@ -84,56 +87,108 @@ async function refreshWorkerModelAvailability(api: TuiPluginApi): Promise<void> 
 function reportWorkerModelError(api: TuiPluginApi, error: unknown): void {
   api.ui.toast({
     variant: "error",
-    message: error instanceof Error ? error.message : "Could not update the worker model",
+    message: error instanceof Error ? error.message : "Could not update the minion model",
   });
 }
 
-export async function registerWorkerModelSelector(api: TuiPluginApi): Promise<void> {
+function openMinionModelSelector(api: TuiPluginApi): void {
+  void workerModelSnapshot(api)
+    .then(async ({ models, stateDirectory }) => {
+      const current = await readWorkerModelPreference(stateDirectory);
+      api.ui.dialog.replace(() =>
+        api.ui.DialogSelect<string>({
+          title: "Minion model",
+          placeholder: "Search connected models",
+          current: current.workerModel ?? INHERIT_MODEL,
+          options: createWorkerModelOptions(models, current.workerModel),
+          onSelect: (option) => {
+            const workerModel = option.value === INHERIT_MODEL ? undefined : option.value;
+            void writeWorkerModelPreference(
+              {
+                ...(workerModel ? { workerModel } : {}),
+                availableModelIds: models.map((model) => model.id),
+              },
+              stateDirectory,
+            )
+              .then(() => reloadOpenCode(api))
+              .then(() => {
+                api.ui.dialog.clear();
+                api.ui.toast({
+                  variant: "success",
+                  message: workerModel
+                    ? `Minion model set to ${workerModel}`
+                    : "Minion now inherits the primary model",
+                });
+              })
+              .catch((error) => reportWorkerModelError(api, error));
+          },
+        }),
+      );
+    })
+    .catch((error) => reportWorkerModelError(api, error));
+}
+
+function openDiagnostics(api: TuiPluginApi): void {
+  void workerModelSnapshot(api)
+    .then(async ({ models, stateDirectory }) => {
+      const current = await readWorkerModelPreference(stateDirectory);
+      const effectiveModel = effectiveWorkerModel(current) ?? "inherits primary model";
+
+      api.ui.dialog.replace(() =>
+        api.ui.DialogAlert({
+          title: "Minions diagnostics",
+          message: [
+            `Plugin: ${MINIONS_PLUGIN_ID}`,
+            `Managed subagent: ${MINIONS_DEFAULT_SUBAGENT_ID}`,
+            `Minion model: ${effectiveModel}`,
+            `Connected tool-capable models: ${models.length}`,
+            `State directory: ${stateDirectory}`,
+          ].join("\n"),
+        }),
+      );
+    })
+    .catch((error) => reportWorkerModelError(api, error));
+}
+
+export function openMinionsManager(api: TuiPluginApi): void {
+  api.ui.dialog.replace(() =>
+    api.ui.DialogSelect<MinionsMenuAction>({
+      title: "Minions",
+      placeholder: "Choose what to configure",
+      options: [
+        {
+          title: "Minion model",
+          value: "minion-model",
+          description: "Choose the model used by the hidden minion subagent",
+        },
+        {
+          title: "Diagnostics",
+          value: "diagnostics",
+          description: "Show the runtime state Minions is injecting",
+        },
+      ],
+      onSelect: (option) => {
+        if (option.value === "minion-model") {
+          openMinionModelSelector(api);
+          return;
+        }
+        openDiagnostics(api);
+      },
+    }),
+  );
+}
+
+export async function registerMinionsManager(api: TuiPluginApi): Promise<void> {
   api.command?.register(() => [
     {
-      title: "Select Minions worker model",
-      value: "minions.worker-model",
-      description: "Choose the model used by the hidden Minions worker",
+      title: "Open Minions",
+      value: "minions.open",
+      description: "Manage Minions agents, models, permissions, and diagnostics",
       category: "Minions",
       slash: {
-        name: "minions-model",
+        name: "minions",
       },
-      onSelect: () => {
-        void workerModelSnapshot(api)
-          .then(async ({ models, stateDirectory }) => {
-            const current = await readWorkerModelPreference(stateDirectory);
-            api.ui.dialog.replace(() =>
-              api.ui.DialogSelect<string>({
-                title: "Minions worker model",
-                placeholder: "Search connected models",
-                current: current.workerModel ?? INHERIT_MODEL,
-                options: createWorkerModelOptions(models, current.workerModel),
-                onSelect: (option) => {
-                  const workerModel = option.value === INHERIT_MODEL ? undefined : option.value;
-                  void writeWorkerModelPreference(
-                    {
-                      ...(workerModel ? { workerModel } : {}),
-                      availableModelIds: models.map((model) => model.id),
-                    },
-                    stateDirectory,
-                  )
-                    .then(() => reloadOpenCode(api))
-                    .then(() => {
-                      api.ui.dialog.clear();
-                      api.ui.toast({
-                        variant: "success",
-                        message: workerModel
-                          ? `Worker model set to ${workerModel}`
-                          : "Worker model now inherits the primary model",
-                      });
-                    })
-                    .catch((error) => reportWorkerModelError(api, error));
-                },
-              }),
-            );
-          })
-          .catch((error) => reportWorkerModelError(api, error));
-      },
+      onSelect: () => openMinionsManager(api),
     },
   ]);
 
@@ -145,9 +200,9 @@ export async function registerWorkerModelSelector(api: TuiPluginApi): Promise<vo
 }
 
 const plugin = {
-  id: "minions",
+  id: MINIONS_PLUGIN_ID,
   tui: async (api) => {
-    await registerWorkerModelSelector(api);
+    await registerMinionsManager(api);
   },
 } satisfies TuiPluginModule;
 

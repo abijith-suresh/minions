@@ -1,14 +1,20 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Config } from "@opencode-ai/plugin";
-import type { TuiCommand, TuiDialogSelectProps, TuiPluginApi } from "@opencode-ai/plugin/tui";
+import type {
+  TuiCommand,
+  TuiDialogAlertProps,
+  TuiDialogSelectProps,
+  TuiPluginApi,
+} from "@opencode-ai/plugin/tui";
 import { describe, expect, test, vi } from "vitest";
 import server, { applyMinionsConfig, createMinionsHooks, createOpenCodeAgents } from "./server.ts";
-import tui, { createWorkerModelOptions, registerWorkerModelSelector } from "./tui.ts";
+import tui, { createWorkerModelOptions, registerMinionsManager } from "./tui.ts";
 import {
   availableWorkerModels,
   effectiveWorkerModel,
+  legacyWorkerModelStatePath,
   readWorkerModelPreference,
   writeWorkerModelPreference,
 } from "./worker-model.ts";
@@ -26,57 +32,26 @@ describe("@abijith-suresh/minions-opencode entry points", () => {
 });
 
 describe("OpenCode agent mapping", () => {
-  test("registers a selectable primary and hidden worker", () => {
+  test("registers only the hidden minion subagent", () => {
     const agents = createOpenCodeAgents();
 
-    expect(agents.minions).toMatchObject({
-      mode: "primary",
-      permission: {
-        task: {
-          "*": "deny",
-          "minions-worker": "allow",
-        },
-      },
-    });
-    expect(agents["minions-worker"]).toMatchObject({
+    expect(Object.keys(agents)).toEqual(["minion"]);
+    expect(agents.minion).toMatchObject({
       mode: "subagent",
       hidden: true,
       permission: { task: "deny" },
     });
   });
 
-  test("exposes only minions-worker through the primary task permission", () => {
-    const taskPermission = createOpenCodeAgents().minions.permission.task;
-
-    expect(taskPermission).toEqual({
-      "*": "deny",
-      "minions-worker": "allow",
-    });
-    expect(taskPermission).not.toHaveProperty("general");
-    expect(taskPermission).not.toHaveProperty("explore");
-  });
-
-  test("retains normal primary tools and prevents worker delegation", () => {
-    const agents = createOpenCodeAgents();
-
-    expect(agents.minions).not.toHaveProperty("tools");
-    expect(agents.minions.permission).toEqual({
-      task: {
-        "*": "deny",
-        "minions-worker": "allow",
-      },
-    });
-    expect(agents["minions-worker"].permission.task).toBe("deny");
+  test("does not register a selectable Minions primary", () => {
+    expect(createOpenCodeAgents()).not.toHaveProperty("minions");
   });
 
   test("omits fixed models so OpenCode inherits the calling model", () => {
-    const agents = createOpenCodeAgents();
-
-    expect(agents.minions).not.toHaveProperty("model");
-    expect(agents["minions-worker"]).not.toHaveProperty("model");
+    expect(createOpenCodeAgents().minion).not.toHaveProperty("model");
   });
 
-  test("pins only an available explicit worker model", () => {
+  test("pins only an available explicit minion model", () => {
     const available = createOpenCodeAgents({
       workerModel: "openai/gpt-5",
       availableModelIds: ["openai/gpt-5"],
@@ -86,12 +61,11 @@ describe("OpenCode agent mapping", () => {
       availableModelIds: [],
     });
 
-    expect(available.minions).not.toHaveProperty("model");
-    expect(available["minions-worker"].model).toBe("openai/gpt-5");
-    expect(unavailable["minions-worker"]).not.toHaveProperty("model");
+    expect(available.minion.model).toBe("openai/gpt-5");
+    expect(unavailable.minion).not.toHaveProperty("model");
   });
 
-  test("adds roles without changing the default agent or unrelated agents", () => {
+  test("adds the managed subagent without changing the default agent or unrelated agents", () => {
     const config = {
       default_agent: "build",
       agent: {
@@ -109,18 +83,40 @@ describe("OpenCode agent mapping", () => {
       description: "A user-defined agent",
       mode: "subagent",
     });
-    expect(config.agent?.minions?.mode).toBe("primary");
-    expect(config.agent?.["minions-worker"]?.mode).toBe("subagent");
+    expect(config.agent?.minion?.mode).toBe("subagent");
+    expect(config.agent).not.toHaveProperty("minions");
   });
 
-  test("replaces reserved role definitions to preserve boundaries", () => {
+  test("removes legacy Minions prototype agents from user configuration", () => {
     const config = {
       agent: {
         minions: {
-          model: "provider/pinned",
-          tools: { task: true },
+          description: "Legacy primary",
+          mode: "primary",
         },
         "minions-worker": {
+          description: "Legacy worker",
+          mode: "subagent",
+        },
+        custom: {
+          description: "A user-defined agent",
+          mode: "subagent",
+        },
+      },
+    } as Config;
+
+    applyMinionsConfig(config);
+
+    expect(config.agent).not.toHaveProperty("minions");
+    expect(config.agent).not.toHaveProperty("minions-worker");
+    expect(config.agent?.custom).toMatchObject({ description: "A user-defined agent" });
+    expect(config.agent?.minion?.mode).toBe("subagent");
+  });
+
+  test("replaces the reserved minion definition to preserve boundaries", () => {
+    const config = {
+      agent: {
+        minion: {
           model: "provider/pinned",
           tools: { task: true },
         },
@@ -129,10 +125,8 @@ describe("OpenCode agent mapping", () => {
 
     applyMinionsConfig(config);
 
-    expect(config.agent?.minions).not.toHaveProperty("model");
-    expect(config.agent?.minions).not.toHaveProperty("tools");
-    expect(config.agent?.["minions-worker"]).not.toHaveProperty("model");
-    expect(config.agent?.["minions-worker"]).not.toHaveProperty("tools");
+    expect(config.agent?.minion).not.toHaveProperty("tools");
+    expect(config.agent?.minion?.permission).toEqual({ task: "deny" });
   });
 
   test("exposes the config mapping through the plugin hook", async () => {
@@ -141,11 +135,11 @@ describe("OpenCode agent mapping", () => {
 
     await hooks.config?.(config);
 
-    expect(config.agent?.minions?.mode).toBe("primary");
-    expect(config.agent?.["minions-worker"]?.mode).toBe("subagent");
+    expect(config.agent?.minion?.mode).toBe("subagent");
+    expect(config.agent).not.toHaveProperty("minions");
   });
 
-  test("loads the global worker preference through the config hook", async () => {
+  test("loads the global minion model preference through the config hook", async () => {
     const config = {} as Config;
     const hooks = createMinionsHooks(async () => ({
       workerModel: "openai/gpt-5",
@@ -154,15 +148,14 @@ describe("OpenCode agent mapping", () => {
 
     await hooks.config?.(config);
 
-    expect(config.agent?.minions).not.toHaveProperty("model");
-    expect(config.agent?.["minions-worker"]?.model).toBe("openai/gpt-5");
-    expect(config.agent?.["minions-worker"]?.permission).toEqual({
+    expect(config.agent?.minion?.model).toBe("openai/gpt-5");
+    expect(config.agent?.minion?.permission).toEqual({
       task: "deny",
     });
   });
 });
 
-describe("worker model selection", () => {
+describe("minion model selection", () => {
   const providers = [
     {
       id: "openai",
@@ -245,10 +238,37 @@ describe("worker model selection", () => {
     }
   });
 
-  test("uses the host global state path before reactive TUI state is ready", async () => {
+  test("reads the legacy worker-model preference when no minion preference exists", async () => {
+    const stateDirectory = await mkdtemp(join(tmpdir(), "minions-legacy-model-test-"));
+
+    try {
+      await writeFile(
+        legacyWorkerModelStatePath(stateDirectory),
+        `${JSON.stringify(
+          {
+            workerModel: "openai/gpt-5",
+            availableModelIds: ["openai/gpt-5"],
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+
+      expect(await readWorkerModelPreference(stateDirectory)).toEqual({
+        workerModel: "openai/gpt-5",
+        availableModelIds: ["openai/gpt-5"],
+      });
+    } finally {
+      await rm(stateDirectory, { recursive: true, force: true });
+    }
+  });
+
+  test("opens one /minions command with a model selector inside the manager", async () => {
     const stateDirectory = await mkdtemp(join(tmpdir(), "minions-tui-model-test-"));
     let commands: TuiCommand[] = [];
-    let select: TuiDialogSelectProps<string> | undefined;
+    const selects: TuiDialogSelectProps<unknown>[] = [];
+    const alerts: TuiDialogAlertProps[] = [];
     const dispose = vi.fn(async () => ({ data: true }));
     const api = {
       command: {
@@ -277,8 +297,12 @@ describe("worker model selection", () => {
         ready: false,
       },
       ui: {
-        DialogSelect: (props: TuiDialogSelectProps<string>) => {
-          select = props;
+        DialogAlert: (props: TuiDialogAlertProps) => {
+          alerts.push(props);
+          return undefined;
+        },
+        DialogSelect: (props: TuiDialogSelectProps<unknown>) => {
+          selects.push(props);
           return undefined;
         },
         dialog: {
@@ -292,23 +316,44 @@ describe("worker model selection", () => {
     } as unknown as TuiPluginApi;
 
     try {
-      await registerWorkerModelSelector(api);
+      await registerMinionsManager(api);
+      expect(commands).toHaveLength(1);
+      expect(commands[0]?.slash?.name).toBe("minions");
       expect(await readWorkerModelPreference(stateDirectory)).toEqual({
         availableModelIds: ["openai/gpt-5"],
       });
 
       commands[0]?.onSelect?.();
-      await vi.waitFor(() => expect(select).toBeDefined());
-      const model = select?.options.find((option) => option.value === "openai/gpt-5");
+      expect(selects.at(-1)?.title).toBe("Minions");
+      const modelMenuItem = selects
+        .at(-1)
+        ?.options.find((option) => option.value === "minion-model");
+      expect(modelMenuItem).toBeDefined();
+      if (!modelMenuItem) throw new Error("Expected the minion model menu option");
+      selects.at(-1)?.onSelect?.(modelMenuItem);
+
+      await vi.waitFor(() => expect(selects.at(-1)?.title).toBe("Minion model"));
+      const model = selects.at(-1)?.options.find((option) => option.value === "openai/gpt-5");
       expect(model).toBeDefined();
       if (!model) throw new Error("Expected the connected model option");
-      select?.onSelect?.(model);
+      selects.at(-1)?.onSelect?.(model);
 
       await vi.waitFor(() => expect(dispose).toHaveBeenCalledOnce());
       expect(await readWorkerModelPreference(stateDirectory)).toEqual({
         workerModel: "openai/gpt-5",
         availableModelIds: ["openai/gpt-5"],
       });
+
+      commands[0]?.onSelect?.();
+      const diagnosticsMenuItem = selects
+        .at(-1)
+        ?.options.find((option) => option.value === "diagnostics");
+      expect(diagnosticsMenuItem).toBeDefined();
+      if (!diagnosticsMenuItem) throw new Error("Expected the diagnostics menu option");
+      selects.at(-1)?.onSelect?.(diagnosticsMenuItem);
+
+      await vi.waitFor(() => expect(alerts.at(-1)?.title).toBe("Minions diagnostics"));
+      expect(alerts.at(-1)?.message).toContain("Managed subagent: minion");
     } finally {
       await rm(stateDirectory, { recursive: true, force: true });
     }
@@ -353,7 +398,7 @@ describe("worker model selection", () => {
         },
         stateDirectory,
       );
-      await registerWorkerModelSelector(api);
+      await registerMinionsManager(api);
       expect(dispose).not.toHaveBeenCalled();
 
       connectedProviders = [];

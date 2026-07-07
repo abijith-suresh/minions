@@ -165,21 +165,14 @@ try {
 
   const agents = await agentsFromHost(port, host, () => `stdout:\n${stdout}\nstderr:\n${stderr}`);
   const primary = agents.find(({ name }) => name === "minions");
-  const worker = agents.find(({ name }) => name === "minions-worker");
+  const minion = agents.find(({ name }) => name === "minion");
 
-  assert.ok(primary, "OpenCode should register the Minions primary agent");
-  assert.equal(primary.mode, "primary");
-  assert.equal(primary.model, undefined);
-  assert.deepEqual(taskPermissions(primary), [
-    { permission: "task", pattern: "*", action: "deny" },
-    { permission: "task", pattern: "minions-worker", action: "allow" },
-  ]);
-
-  assert.ok(worker, "OpenCode should register the Minions worker");
-  assert.equal(worker.mode, "subagent");
-  assert.equal(worker.hidden, true);
-  assert.equal(worker.model, undefined);
-  assert.deepEqual(taskPermissions(worker), [{ permission: "task", action: "deny", pattern: "*" }]);
+  assert.equal(primary, undefined, "OpenCode should not register a Minions primary agent");
+  assert.ok(minion, "OpenCode should register the default Minions-managed subagent");
+  assert.equal(minion.mode, "subagent");
+  assert.equal(minion.hidden, true);
+  assert.equal(minion.model, undefined);
+  assert.deepEqual(taskPermissions(minion), [{ permission: "task", action: "deny", pattern: "*" }]);
 } finally {
   if (host && host.exitCode === null && host.signalCode === null) {
     const signalHost = (signal) => {

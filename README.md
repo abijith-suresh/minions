@@ -22,13 +22,13 @@ ready for installation or general use. APIs and behavior may change in every pul
 - Minions-managed custom agents and subagents
 - Model, prompt, permission, visibility, and task-access controls
 - A hidden default subagent named `minion`
-- An explicitly invoked delegation skill/workflow that can use `minion`
+- A future explicitly invoked delegation skill/workflow that can use `minion`
 - Runtime configuration injection from Minions-owned state instead of direct
   edits to user OpenCode config
 
-The current implementation is transitional. It still contains the earlier
-delegation prototype while the package is being rewritten toward the agent
-manager model before the first public release.
+The current implementation is an early runtime slice of that direction. It
+registers the hidden `minion` subagent and one `/minions` TUI entry point with
+model selection and diagnostics.
 
 ## Repository layout
 
