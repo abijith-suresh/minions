@@ -1,5 +1,6 @@
 import { MINIONS_DEFAULT_SUBAGENT_ID, MINIONS_PLUGIN_ID } from "@minions/core";
 import type { TuiDialogSelectOption, TuiPluginApi, TuiPluginModule } from "@opencode-ai/plugin/tui";
+import { installMinionsDelegateSkill } from "./skill.js";
 import {
   availableWorkerModels,
   effectiveWorkerModel,
@@ -47,7 +48,7 @@ interface WorkerModelSnapshot {
   readonly stateDirectory: string;
 }
 
-type MinionsMenuAction = "minion-model" | "diagnostics";
+type MinionsMenuAction = "delegation-skill" | "minion-model" | "diagnostics";
 
 async function workerModelSnapshot(api: TuiPluginApi): Promise<WorkerModelSnapshot> {
   const [pathResult, providersResult] = await Promise.all([
@@ -89,6 +90,42 @@ function reportWorkerModelError(api: TuiPluginApi, error: unknown): void {
     variant: "error",
     message: error instanceof Error ? error.message : "Could not update the minion model",
   });
+}
+
+function reportMinionsError(api: TuiPluginApi, error: unknown): void {
+  api.ui.toast({
+    variant: "error",
+    message: error instanceof Error ? error.message : "Minions action failed",
+  });
+}
+
+function installDelegationSkill(api: TuiPluginApi): void {
+  void api.client.path
+    .get({}, { throwOnError: true })
+    .then(async (pathResult) => {
+      const configDirectory = pathResult.data?.config;
+      if (!configDirectory) throw new Error("OpenCode did not provide its global config directory");
+
+      const skillPath = await installMinionsDelegateSkill(configDirectory);
+      api.ui.toast({
+        variant: "success",
+        message: `Installed minions-delegate skill at ${skillPath}`,
+      });
+      api.ui.dialog.replace(() =>
+        api.ui.DialogAlert({
+          title: "Delegation skill installed",
+          message: [
+            "Installed or updated the minions-delegate skill.",
+            "",
+            `Path: ${skillPath}`,
+            "",
+            "If OpenCode does not show the skill immediately, restart or reload OpenCode.",
+            "Invoke it explicitly, for example: use the minions-delegate skill for this task.",
+          ].join("\n"),
+        }),
+      );
+    })
+    .catch((error) => reportMinionsError(api, error));
 }
 
 function openMinionModelSelector(api: TuiPluginApi): void {
@@ -162,12 +199,21 @@ export function openMinionsManager(api: TuiPluginApi): void {
           description: "Choose the model used by the hidden minion subagent",
         },
         {
+          title: "Delegation skill",
+          value: "delegation-skill",
+          description: "Install or update the explicitly invoked minions-delegate skill",
+        },
+        {
           title: "Diagnostics",
           value: "diagnostics",
           description: "Show the runtime state Minions is injecting",
         },
       ],
       onSelect: (option) => {
+        if (option.value === "delegation-skill") {
+          installDelegationSkill(api);
+          return;
+        }
         if (option.value === "minion-model") {
           openMinionModelSelector(api);
           return;

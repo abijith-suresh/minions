@@ -82,6 +82,17 @@ The intended behavior is:
 OpenCode remains responsible for task execution, foreground/background
 behavior, model providers, and host-level scheduling.
 
+In the OpenCode v1 adapter, the delegation workflow is installed as a
+Minions-managed skill file under the user's OpenCode config directory:
+
+```text
+<opencode config>/skills/minions-delegate/SKILL.md
+```
+
+The `/minions` manager can install or update that file. The skill is explicitly
+invoked by the user and instructs the active primary agent to use the hidden
+`minion` subagent for repository or tool-dependent work.
+
 ## Current Runtime Slice
 
 The current implementation provides the first local-dogfooding slice:
@@ -89,10 +100,12 @@ The current implementation provides the first local-dogfooding slice:
 - one `/minions` command that opens the Minions manager dialog
 - a hidden `minion` subagent injected through the OpenCode config hook
 - model selection and diagnostics inside the manager
+- installation of the explicitly invoked `minions-delegate` skill inside the
+  manager
 - model fallback to primary inheritance when the selected model is unavailable
 
-It does not register a selectable `minions` primary agent. Delegation remains a
-future explicit skill/workflow rather than a runtime mode enabled by default.
+It does not register a selectable `minions` primary agent. Delegation is a
+user-invoked skill/workflow rather than a runtime mode enabled by default.
 
 ## Plugin Packaging
 

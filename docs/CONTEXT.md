@@ -68,10 +68,12 @@ currently provides:
 
 - one `/minions` TUI entry point
 - a hidden Minions-managed `minion` subagent
-- minion model selection and diagnostics inside `/minions`
+- minion model selection inside `/minions`
+- installation of the explicitly invoked `minions-delegate` skill inside
+  `/minions`
+- diagnostics inside `/minions`
 
-The broader agent manager and explicit delegation skill/workflow are still
-pre-v1 follow-up work.
+The broader agent manager remains pre-v1 follow-up work.
 
 ## Success Criteria
 
