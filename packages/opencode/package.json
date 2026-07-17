@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@minions/core": "*",
-    "@opencode-ai/plugin": "1.17.13",
+    "@opencode-ai/plugin": "1.18.3",
     "esbuild": "0.28.1"
   }
 }
