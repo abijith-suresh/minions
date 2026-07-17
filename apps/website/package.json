@@ -12,7 +12,7 @@
     "verify": "npm run check && npm run typecheck"
   },
   "dependencies": {
-    "astro": "^7.0.5"
+    "astro": "^7.1.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
